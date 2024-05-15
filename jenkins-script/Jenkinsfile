@@ -28,14 +28,22 @@ pipeline {
                             docker build --platform ${PLATFORM} -t ${SERVICE_NAME}:${TAG} .
                             docker tag ${SERVICE_NAME}:${TAG} ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
                             docker push ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
-                            docker rmi ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
-                            docker rmi ${SERVICE_NAME}:${TAG}
                         """
                     }
                 }
             }
         }
-
+        stage('Cleanup') {
+            steps {
+                withDockerHost("${env.DOCKER_HOST}") {
+                    sh """
+                        docker rmi ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} || true
+                        docker rmi ${SERVICE_NAME}:${TAG} || true
+                        docker system prune -f || true
+                    """
+                }
+            }
+        }
         stage('Restarting service') {
             steps {
                 script {
