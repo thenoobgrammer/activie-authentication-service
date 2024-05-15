@@ -9,7 +9,6 @@ require (
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/hashicorp/vault/api v1.12.2
-	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.21.0
 )
 

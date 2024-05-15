@@ -25,7 +25,7 @@ pipeline {
                 script {
                     dir("../deploy-${SERVICE_NAME}") {
                         sh """
-                            docker build --platform ${PLATFORM} -t ${SERVICE_NAME}:${TAG} .
+                            docker build -t ${SERVICE_NAME}:${TAG} .
                             docker tag ${SERVICE_NAME}:${TAG} ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
                             docker push ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
                         """
@@ -56,13 +56,13 @@ pipeline {
                                 docker ps -q --filter 'name=!vault' | xargs -r docker stop
 
                                 echo 'Pulling latest images for external service...';
-                                docker pull --platform ${PLATFORM} thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
+                                docker pull thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
 
                                 echo 'Removing old containers...';
                                 docker rm -f pickside-${SERVICE_NAME}-prod;
 
                                 echo 'Running new containers...';
-                                docker run --platform ${PLATFORM} -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name pickside-${SERVICE_NAME}-prod -p 8083:8083 thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
+                                docker run -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name pickside-${SERVICE_NAME}-prod -p 8083:8083 thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
                             "
                         """
                     }

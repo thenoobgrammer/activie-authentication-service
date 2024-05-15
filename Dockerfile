@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 FROM golang:1.21.6-alpine AS builder
 
 WORKDIR /build
@@ -10,19 +8,19 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/auth-service ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/authentication-service ./cmd/main.go
 
 FROM alpine:3.16
 
 WORKDIR /app
 
-COPY --from=builder /bin/auth-service /app/
+COPY --from=builder /bin/authentication-service /app/
 
 ARG VERSION
 
-ENV SERVICE_NAME="auth-service" \
+ENV SERVICE_NAME="authentication-service" \
     SERVICE_VERSION=${VERSION}
 
 EXPOSE 8081
 
-CMD ["/app/auth-service"]
+CMD ["/app/authentication-service"]

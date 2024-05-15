@@ -1,7 +1,7 @@
 run: build
-	@./bin/auth-service
+	@./bin/authentication-service
 
 build:
-	@echo "Building Auth service..."
-	@go build -o ./bin/auth-service ./cmd/main.go
+	@echo "Building Authentication service..."
+	@go build -o ./bin/authentication-service ./cmd/main.go
 	@echo "Done"
