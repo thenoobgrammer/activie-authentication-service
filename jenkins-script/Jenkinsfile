@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME='auth-service'
+        SERVICE_NAME='authentication-service'
         DOCKERHUB_CREDENTIALS = credentials('docker-creds')
         DOCKERHUB_USERNAME = 'thenoobgrammer'
         REPO_BASE = 'pickside-service'
@@ -23,7 +23,7 @@ pipeline {
         stage('Build and Push') {
             steps {
                 script {
-                    dir("../deploy-pickside-service/${SERVICE_NAME}") {
+                    dir("../deploy-${SERVICE_NAME}") {
                         sh """
                             docker build --platform ${PLATFORM} -t ${SERVICE_NAME}:${TAG} .
                             docker tag ${SERVICE_NAME}:${TAG} ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
@@ -35,7 +35,7 @@ pipeline {
         }
         stage('Cleanup') {
             steps {
-                withDockerHost("${env.DOCKER_HOST}") {
+                script {
                     sh """
                         docker rmi ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} || true
                         docker rmi ${SERVICE_NAME}:${TAG} || true
