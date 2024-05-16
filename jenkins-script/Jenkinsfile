@@ -37,7 +37,6 @@ pipeline {
                 script {
                     sh """
                         docker rmi ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} || true
-                        docker rmi ${SERVICE_NAME}:${TAG} || true
                     """
                 }
             }
