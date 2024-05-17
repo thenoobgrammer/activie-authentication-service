@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Setup Docker Buildx') {
             steps {
-                sh 'docker buildx create --use'
+                sh 'docker buildx create'
                 sh 'docker buildx inspect --bootstrap'
             }
         }
