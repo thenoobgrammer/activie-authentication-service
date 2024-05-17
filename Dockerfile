@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/authentication-service ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /bin/authentication-service ./cmd/main.go
 
 FROM alpine:3.16
 
@@ -16,7 +16,7 @@ WORKDIR /app
 
 COPY --from=builder /bin/authentication-service /app/
 
-ARG VERSION="latest"
+ARG VERSION
 
 ENV SERVICE_NAME="authentication-service" \
     SERVICE_VERSION=${VERSION}
