@@ -16,7 +16,7 @@ WORKDIR /app
 
 COPY --from=builder /bin/authentication-service /app/
 
-ARG VERSION
+ARG VERSION="latest"
 
 ENV SERVICE_NAME="authentication-service" \
     SERVICE_VERSION=${VERSION}

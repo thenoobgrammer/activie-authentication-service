@@ -2,14 +2,16 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME='authentication-service'
+        SERVICE_NAME = 'authentication-service'
         DOCKERHUB_CREDENTIALS = credentials('docker-creds')
         DOCKERHUB_USERNAME = 'thenoobgrammer'
         REPO_BASE = 'pickside-service'
         TAG = 'latest'
         VAULT_ADDRESS = credentials('vault-address')
-        VAULT_TOKEN = credentials('vault-token') 
+        VAULT_TOKEN = credentials('vault-token')
         PLATFORM = 'linux/amd64'
+        EC2_HOST = 'ec2-34-225-177-141.compute-1.amazonaws.com'
+        SSH_KEY_CREDENTIALS = 'aws-ec2-ssh-key'
     }
 
     stages {
@@ -25,8 +27,8 @@ pipeline {
                 script {
                     dir("../deploy-${SERVICE_NAME}") {
                         sh """
-                            docker build --platform ${PLATFORM} -t ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG} .
-                            docker push ${DOCKERHUB_USERNAME}/pickside-service:${SERVICE_NAME}-${TAG}
+                            docker build --platform ${PLATFORM} -t ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} .
+                            docker push ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG}
                         """
                     }
                 }
@@ -35,32 +37,31 @@ pipeline {
         stage('Cleanup') {
             steps {
                 script {
-                    sh """
-                        docker rmi ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} || true
-                    """
+                    sh "docker rmi ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} || true"
                 }
             }
         }
         stage('Restarting service') {
             steps {
                 script {
-                    sshagent(['aws-ec2-ssh-key']) {
+                    sshagent([SSH_KEY_CREDENTIALS]) {
                         sh """
                             echo "Checking loaded SSH keys..."
                             ssh-add -L
                             echo "Connecting to server..."
-                            ssh -o StrictHostKeyChecking=no ubuntu@ec2-34-225-177-141.compute-1.amazonaws.com "
+                            ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
+                                set -e
                                 docker ps -q --filter 'name=!vault' | xargs -r docker stop
 
-                                echo 'Pulling latest images for authentication service...';
-                                docker pull thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
+                                echo 'Pulling latest images for ${SERVICE_NAME}...';
+                                docker pull ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest
 
                                 echo 'Removing old containers...';
-                                docker rm -f ${SERVICE_NAME}-prod || true;
+                                docker rm -f ${SERVICE_NAME}-prod || true
 
                                 echo 'Running new containers...';
-                                docker run -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name ${SERVICE_NAME}-prod -p 8083:8083 thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
-                            "
+                                docker run -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name ${SERVICE_NAME}-prod -p 8083:8083 ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest
+                            EOF
                         """
                     }
                 }
