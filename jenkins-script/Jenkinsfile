@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Setup Docker Buildx') {
             steps {
-                sh 'docker buildx create --name agent1builder --use'
+                sh 'docker buildx create --use'
                 sh 'docker buildx inspect --bootstrap'
             }
         }
