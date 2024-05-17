@@ -15,6 +15,12 @@ pipeline {
     }
 
     stages {
+        stage('Setup Docker Buildx') {
+            steps {
+                sh 'docker buildx create --name agent1builder --use'
+                sh 'docker buildx inspect --bootstrap'
+            }
+        }
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -27,7 +33,7 @@ pipeline {
                 script {
                     dir("../deploy-${SERVICE_NAME}") {
                         sh """
-                            docker build --platform ${PLATFORM} -t ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} .
+                            docker buildx build --platform ${PLATFORM} -t ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} .
                             docker push ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG}
                         """
                     }
