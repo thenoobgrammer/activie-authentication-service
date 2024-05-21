@@ -9,8 +9,7 @@ pipeline {
         TAG = 'latest'
         VAULT_ADDRESS = credentials('vault-address')
         VAULT_TOKEN = credentials('vault-token')
-        PLATFORM = 'linux/amd64'
-        EC2_HOST = 'ec2-34-225-177-141.compute-1.amazonaws.com'
+        SERVER_HOST = 'ec2-34-225-177-141.compute-1.amazonaws.com'
         SSH_KEY_CREDENTIALS = 'aws-ec2-ssh-key'
     }
 
@@ -50,7 +49,7 @@ pipeline {
                             echo "Checking loaded SSH keys..."
                             ssh-add -L
                             echo "Connecting to server..."
-                            ssh -o StrictHostKeyChecking=no ubuntu@ec2-34-225-177-141.compute-1.amazonaws.com "
+                            ssh -o StrictHostKeyChecking=no ${SERVER_HOST} "
                                 docker ps -q --filter 'name=!vault' | xargs -r docker stop
 
                                 echo 'Pulling latest images for external service...';
@@ -60,7 +59,13 @@ pipeline {
                                 docker rm -f pickside-${SERVICE_NAME}-prod;
 
                                 echo 'Running new container...';
-                                docker run -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name pickside-${SERVICE_NAME}-prod -p 8081:8081 thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
+                                docker run -d \
+                                    -e VAULT_TOKEN=${VAULT_TOKEN} \
+                                    -e VAULT_ADDRESS=${VAULT_ADDRESS} \
+                                    -e AUTHENTICATION_SERVICE_BASE_URL=https://pickside-service.com/auth-service
+                                    --name pickside-${SERVICE_NAME}-prod \
+                                    -p 8081:8081 \
+                                    ${DOCKERHUB_USERNAME}/${REPO_BASE}${SERVICE_NAME}-latest;
                             "
                         """
                     }
