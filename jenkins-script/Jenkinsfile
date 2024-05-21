@@ -45,24 +45,23 @@ pipeline {
         stage('Restarting service') {
             steps {
                 script {
-                    sshagent([SSH_KEY_CREDENTIALS]) {
+                    sshagent(['ec2-ssh-access-key']) {
                         sh """
                             echo "Checking loaded SSH keys..."
                             ssh-add -L
                             echo "Connecting to server..."
-                            ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
-                                set -e
+                            ssh -o StrictHostKeyChecking=no ubuntu@ec2-34-225-177-141.compute-1.amazonaws.com "
                                 docker ps -q --filter 'name=!vault' | xargs -r docker stop
 
-                                echo 'Pulling latest images for ${SERVICE_NAME}...';
-                                docker pull ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest
+                                echo 'Pulling latest images for external service...';
+                                docker pull thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
 
-                                echo 'Removing old containers...';
-                                docker rm -f ${SERVICE_NAME}-prod || true
+                                echo 'Removing old container...';
+                                docker rm -f pickside-${SERVICE_NAME}-prod;
 
-                                echo 'Running new containers...';
-                                docker run -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name ${SERVICE_NAME}-prod -p 8083:8083 ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest
-                            EOF
+                                echo 'Running new container...';
+                                docker run -d -e VAULT_TOKEN=${VAULT_TOKEN} -e VAULT_ADDRESS=${VAULT_ADDRESS} --name pickside-${SERVICE_NAME}-prod -p 8081:8081 thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
+                            "
                         """
                     }
                 }
