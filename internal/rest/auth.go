@@ -30,13 +30,15 @@ func Me(g *gin.Context) {
 		"success": true,
 	})
 }
-func Login(g *gin.Context) {
-	var req models.SystemUserCrendetialsRequest
+func Authenticate(g *gin.Context) {
+	var req models.AuthenticationRequest
 
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.JSON(http.StatusBadRequest, gin.H{"error": errors.New("bad request").Error()})
 		return
 	}
+
+	service.HandleAuthentication(req)
 
 	result, err := service.QueryUserFromCredentials(req)
 	if err != nil {
@@ -71,31 +73,6 @@ func Login(g *gin.Context) {
 		"success": true,
 	})
 }
-
-// func ExternalLogin(g *gin.Context) {
-// 	var req models.ExternalUserCrendetialsRequest
-
-// 	if err := g.ShouldBindJSON(&req); err != nil {
-// 		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	result, err := service.QueryExternalUser(req)
-// 	if err != nil {
-// 		g.JSON(http.StatusInternalServerError, gin.H{
-// 			"error":   err.Error(),
-// 			"message": "Something went wrong",
-// 			"success": false,
-// 		})
-// 		return
-// 	}
-
-//		g.JSON(http.StatusOK, gin.H{
-//			"message": "Credentials match",
-//			"result":  result,
-//			"success": true,
-//		})
-//	}
 func Signup(g *gin.Context) {
 	var req models.CreateUserRequest
 
@@ -122,4 +99,3 @@ func Signup(g *gin.Context) {
 		"success": true,
 	})
 }
-func ExternalSignup(g *gin.Context) {}

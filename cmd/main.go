@@ -28,10 +28,8 @@ func main() {
 
 	//User
 	as.GET("/me", rest.Me)
-	as.POST("/login", rest.Login)
-	//as.POST("/extlogin", rest.ExternalLogin) //TODO
+	as.POST("/authenticate", rest.Authenticate)
 	as.POST("/signup", rest.Signup)
-	as.POST("/extsignup", rest.ExternalSignup)
 
 	//Token
 	as.GET("/issue-token", rest.IssueToken)

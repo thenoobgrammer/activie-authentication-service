@@ -41,6 +41,10 @@ type User struct {
 	Timezone              string     `json:"timezone,omitempty"`
 }
 
+type AuthenticationRequest struct {
+	AuthType string `json:"authType" validate:"required"`
+}
+
 type SystemUserCrendetialsRequest struct {
 	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
