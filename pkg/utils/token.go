@@ -3,6 +3,8 @@ package utils
 import (
 	"auth-service/internal/vault"
 	"auth-service/pkg/models"
+	"errors"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,7 +12,11 @@ import (
 
 var secretKey = []byte(vault.Envars["TOKEN_SECRET"].(string))
 
-func IssueToken(claims models.UserClaims) (string, error) {
+func IssueToken(claims models.UserClaims) (*string, error) {
+	log.Println("claims", claims)
+	if claims.Email == "" || claims.UserID == "" {
+		return nil, errors.New("claims invalid")
+	}
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	mapClaims := token.Claims.(jwt.MapClaims)
@@ -22,7 +28,7 @@ func IssueToken(claims models.UserClaims) (string, error) {
 
 	tokenString, err := token.SignedString(secretKey)
 
-	return tokenString, err
+	return &tokenString, err
 }
 func GenerateJWT(userID uint64, username string, email string, emailVerified bool) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)

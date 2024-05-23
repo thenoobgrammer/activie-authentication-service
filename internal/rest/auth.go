@@ -10,7 +10,7 @@ import (
 )
 
 func AuthenticateBearer(g *gin.Context) {
-	bearer := g.Query("bearerToken")
+	bearer := g.Query("token")
 
 	if bearer == "" {
 		g.JSON(http.StatusUnauthorized, gin.H{
@@ -21,11 +21,10 @@ func AuthenticateBearer(g *gin.Context) {
 		return
 	}
 
-	ok, err := service.ValidateFromBearer(bearer)
-	if err != nil {
-		g.JSON(http.StatusNotFound, gin.H{
+	authenticated := service.ValidateFromBearer(bearer)
+	if !authenticated {
+		g.JSON(http.StatusUnauthorized, gin.H{
 			"authenticated": false,
-			"error":         err.Error(),
 			"message":       "Email or password do not match",
 			"success":       false,
 		})
@@ -33,12 +32,10 @@ func AuthenticateBearer(g *gin.Context) {
 	}
 
 	g.JSON(http.StatusOK, gin.H{
-		"authenticated": ok,
-		"message":       "Bearer valid",
+		"authenticated": authenticated,
 		"success":       true,
 	})
 }
-
 func AuthenticateCredentials(g *gin.Context) {
 	var req models.SystemUserCrendetialsRequest
 
@@ -47,11 +44,10 @@ func AuthenticateCredentials(g *gin.Context) {
 		return
 	}
 
-	ok, err := service.ValidateCredentials(req)
-	if err != nil {
-		g.JSON(http.StatusNotFound, gin.H{
+	authenticated := service.ValidateCredentials(req)
+	if !authenticated {
+		g.JSON(http.StatusUnauthorized, gin.H{
 			"authenticated": false,
-			"error":         err.Error(),
 			"message":       "Email or password do not match",
 			"success":       false,
 		})
@@ -59,7 +55,7 @@ func AuthenticateCredentials(g *gin.Context) {
 	}
 
 	g.JSON(http.StatusOK, gin.H{
-		"authenticated": ok,
+		"authenticated": authenticated,
 		"message":       "Credentials match",
 		"success":       true,
 	})

@@ -31,8 +31,8 @@ func main() {
 	as.POST("/authenticate/credentials", rest.AuthenticateCredentials)
 
 	//Token
-	as.GET("/issue-token", rest.IssueToken)
-	as.GET("/refresh-token", rest.RefreshToken)
+	as.POST("/issue-token", rest.IssueToken)
+	as.POST("/refresh-token", rest.RefreshToken)
 
 	//Session
 	as.GET("/logout", rest.Logout)

@@ -58,7 +58,12 @@ func CreateUser(req models.CreateUserRequest) (*string, error) {
 
 	return &userID, nil
 }
-func GetByClaims(userClaims *models.UserClaims) (bool, error) {
+func GetByID(userID string) bool {
+	uint64UserID, err := utils.StringToUint64(userID)
+	if err != nil {
+		return false
+	}
+
 	var exists bool
 
 	query := `
@@ -66,29 +71,22 @@ func GetByClaims(userClaims *models.UserClaims) (bool, error) {
 			SELECT 1
 			FROM users
 			WHERE id = ?
-			AND email = ?
 		)
 	`
 
-	err := database.GetClient().QueryRow(query, userClaims.UserID, userClaims.Email).Scan(&exists)
-	if err != nil {
-		return false, err
-	}
+	err = database.GetClient().QueryRow(query, uint64UserID).Scan(&exists)
 
-	return exists, nil
+	return exists && err == nil
 }
-func GetByCredentials(email string, unhashedPassword string) (bool, error) {
+func GetByCredentials(email string, unhashedPassword string) bool {
 	var hashedPwd string
 
 	err := database.GetClient().QueryRow(`SELECT password FROM users WHERE email = ?`, email).Scan(&hashedPwd)
 	if err != nil {
-		return false, err
+		return false
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(unhashedPassword))
-	if err != nil {
-		return false, err
-	}
 
-	return true, nil
+	return err == nil
 }
