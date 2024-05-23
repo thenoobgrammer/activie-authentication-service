@@ -3,7 +3,6 @@ package utils
 import (
 	"auth-service/internal/vault"
 	"auth-service/pkg/models"
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,7 +24,6 @@ func IssueToken(claims models.UserClaims) (string, error) {
 
 	return tokenString, err
 }
-
 func GenerateJWT(userID uint64, username string, email string, emailVerified bool) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -39,7 +37,6 @@ func GenerateJWT(userID uint64, username string, email string, emailVerified boo
 
 	return tokenString, err
 }
-
 func GetClaims(tokenString string) (*models.UserClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
@@ -55,24 +52,4 @@ func GetClaims(tokenString string) (*models.UserClaims, error) {
 		Email:         claims["email"].(string),
 		EmailVerified: claims["email_verified"].(bool),
 	}, nil
-}
-func IsTokenExpired(tokenString string) bool {
-	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
-	})
-	if err != nil && err == jwt.ErrTokenExpired {
-		return true
-	}
-
-	return false
-}
-
-func IsTokenValid(tokenString string) bool {
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
-	})
-
-	log.Println("IsTokenValid - token", token)
-
-	return token.Valid
 }

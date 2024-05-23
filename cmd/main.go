@@ -27,14 +27,12 @@ func main() {
 	as.GET("/health", rest.GetHealth)
 
 	//User
-	as.GET("/me", rest.Me)
-	as.POST("/authenticate", rest.Authenticate)
-	as.POST("/signup", rest.Signup)
+	as.POST("/authenticate/bearer", rest.AuthenticateBearer)
+	as.POST("/authenticate/credentials", rest.AuthenticateCredentials)
 
 	//Token
 	as.GET("/issue-token", rest.IssueToken)
 	as.GET("/refresh-token", rest.RefreshToken)
-	as.GET("/verify-token", rest.VerifyToken)
 
 	//Session
 	as.GET("/logout", rest.Logout)

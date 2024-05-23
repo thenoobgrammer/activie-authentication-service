@@ -20,47 +20,13 @@ func validateStruct(req models.CreateUserRequest) error {
 	}
 	return nil
 }
-func CreateUser(req models.CreateUserRequest) (*models.User, error) {
-	err := validateStruct(req)
-	if err != nil {
-		return nil, err
-	}
-
-	insertedID, err := sqlutils.CreateUser(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return sqlutils.GetByID(*insertedID)
-}
-
-// func CreateExternalUser(req models.CreateUserRequest) (*models.User, error) {
-// 	insertedID, err := sqlutils.CreateUser(req)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-//		return sqlutils.GetByID(*insertedID)
-//	}
-func QueryUserFromBearer(bearer string) (*models.User, error) {
+func ValidateFromBearer(bearer string) (bool, error) {
 	userClaims, err := utils.GetClaims(bearer)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	return sqlutils.GetByClaims(userClaims)
 }
-func QueryUserFromCredentials(req models.SystemUserCrendetialsRequest) (*models.User, error) {
+func ValidateCredentials(req models.SystemUserCrendetialsRequest) (bool, error) {
 	return sqlutils.GetByCredentials(req.Email, req.Password)
 }
-
-// TODO
-// func QueryExternalUser(req models.ExternalUserCrendetialsRequest) (*models.User, error) {
-// 	provider := req.Provider
-
-// 	switch provider {
-// 	case "google":
-// 		return sqlutils.GetGoogleUser(req.ExternalId, req.Email)
-// 	}
-
-// 	return nil, errors.New("unknown provider")
-// }

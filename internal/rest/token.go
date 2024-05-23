@@ -4,7 +4,6 @@ import (
 	"auth-service/internal/service"
 	"auth-service/pkg/models"
 	"auth-service/pkg/utils"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,42 +45,4 @@ func RefreshToken(g *gin.Context) {
 		"message": "Refreshed bearer",
 		"success": true,
 	})
-}
-func VerifyToken(g *gin.Context) {
-	bearerToken := utils.GetBearer(g)
-
-	err := service.ValidateToken(*bearerToken)
-	if err != nil {
-		log.Println("Invalid token", err.Error())
-		g.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error":   err.Error(),
-			"message": "Unauthorized",
-			"success": false,
-		})
-		return
-	}
-
-	if service.TokenExpired(*bearerToken) {
-		refreshedBearer, err := service.RefreshToken(*bearerToken)
-		if err != nil {
-			g.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error":   err.Error(),
-				"message": "Error while refreshing token, please relogin",
-				"success": false,
-			})
-			return
-		}
-		utils.SetBearer(g, *refreshedBearer)
-	}
-
-	claims, err := service.GetClaims(*bearerToken)
-	if err != nil {
-		g.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Error while fetching claims",
-			"success": false,
-		})
-	}
-
-	g.JSON(http.StatusOK, claims)
 }
