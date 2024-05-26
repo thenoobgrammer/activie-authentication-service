@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth-service/internal/database"
+	"auth-service/internal/redis"
 	"auth-service/internal/rest"
 	"auth-service/internal/vault"
 	"log"
@@ -17,6 +18,8 @@ func main() {
 	database.Initialize(dsn)
 	defer database.Close()
 
+	redis.InitializeClient()
+
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	g := gin.Default()
 	g.Use(cors.New(buildCors()))
@@ -26,20 +29,14 @@ func main() {
 	//Health
 	as.GET("/health", rest.GetHealth)
 
-	//User
-	as.GET("/me", rest.Me)
-	as.POST("/login", rest.Login)
-	//as.POST("/extlogin", rest.ExternalLogin) //TODO
-	as.POST("/signup", rest.Signup)
-	as.POST("/extsignup", rest.ExternalSignup)
+	//Session
+	as.POST("/session/check", rest.CheckSession)
+	as.POST("/session/new", rest.NewSession)
+	as.POST("/session/end", rest.EndSession)
 
 	//Token
-	as.GET("/issue-token", rest.IssueToken)
-	as.GET("/refresh-token", rest.RefreshToken)
-	as.GET("/verify-token", rest.VerifyToken)
-
-	//Session
-	as.GET("/logout", rest.Logout)
+	as.POST("/token/request", rest.RequestToken)
+	as.POST("/token/refresh", rest.RefreshToken)
 
 	PrintServiceInformation()
 
