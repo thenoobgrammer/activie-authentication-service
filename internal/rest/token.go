@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func IssueToken(g *gin.Context) {
+func RequestToken(g *gin.Context) {
 	var queryParams models.UserClaims
 
 	if err := g.ShouldBindJSON(&queryParams); err != nil {
@@ -17,7 +17,7 @@ func IssueToken(g *gin.Context) {
 		return
 	}
 
-	result, err := service.IssueToken(queryParams)
+	result, err := service.RequestToken(queryParams)
 	if err != nil {
 		g.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": true,

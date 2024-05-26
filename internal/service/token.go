@@ -5,8 +5,8 @@ import (
 	"auth-service/pkg/utils"
 )
 
-func IssueToken(claims models.UserClaims) (*string, error) {
-	return utils.IssueToken(claims)
+func RequestToken(claims models.UserClaims) (*string, error) {
+	return utils.GenerateToken(claims)
 }
 func GetClaims(token string) (*models.UserClaims, error) {
 	return utils.GetClaims(token)
@@ -17,7 +17,7 @@ func RefreshToken(token string) (*string, error) {
 		return nil, err
 	}
 
-	newToken, err := utils.IssueToken(*userClaims)
+	newToken, err := utils.GenerateToken(*userClaims)
 
 	return newToken, err
 }

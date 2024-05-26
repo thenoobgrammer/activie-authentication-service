@@ -7,21 +7,18 @@ import (
 )
 
 func ValidateID(userID string) bool {
-	return sqlutils.GetByID(userID)
+	return sqlutils.ValidID(userID)
 }
-func ValidateFromBearer(bearer string) bool {
-	if bearer == "" {
-		return false
-	}
+func ValidateFromBearer(bearer string) (bool, *models.UserClaims) {
 	userClaims, err := utils.GetClaims(bearer)
-	if err != nil {
-		return false
+	if bearer == "" || err != nil {
+		return false, nil
 	}
-	return sqlutils.GetByID(userClaims.UserID)
+	return true, userClaims
 }
-func ValidateCredentials(req models.SystemUserCrendetialsRequest) bool {
+func ValidateCredentials(req models.SystemUserCrendetialsRequest) (bool, bool, *string) {
 	if req.Email == "" || req.Password == "" {
-		return false
+		return false, false, nil
 	}
-	return sqlutils.GetByCredentials(req.Email, req.Password)
+	return sqlutils.ValidCredentials(req.Email, req.Password)
 }

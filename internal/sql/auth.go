@@ -58,7 +58,7 @@ func CreateUser(req models.CreateUserRequest) (*string, error) {
 
 	return &userID, nil
 }
-func GetByID(userID string) bool {
+func ValidID(userID string) bool {
 	uint64UserID, err := utils.StringToUint64(userID)
 	if err != nil {
 		return false
@@ -78,15 +78,19 @@ func GetByID(userID string) bool {
 
 	return exists && err == nil
 }
-func GetByCredentials(email string, unhashedPassword string) bool {
+func ValidCredentials(email string, unhashedPassword string) (bool, bool, *string) {
+	var userID uint64
+	var emailVerified bool
 	var hashedPwd string
 
-	err := database.GetClient().QueryRow(`SELECT password FROM users WHERE email = ?`, email).Scan(&hashedPwd)
+	err := database.GetClient().QueryRow(`SELECT id, email_verified, password FROM users WHERE email = ?`, email).Scan(&userID, &emailVerified, &hashedPwd)
 	if err != nil {
-		return false
+		return false, false, nil
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(unhashedPassword))
 
-	return err == nil
+	userIDString := utils.Uint64ToString(userID)
+
+	return err == nil, emailVerified, &userIDString
 }
