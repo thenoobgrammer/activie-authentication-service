@@ -24,19 +24,17 @@ func main() {
 	g := gin.Default()
 	g.Use(cors.New(buildCors()))
 
-	as := g.Group("/auth-service")
-
 	//Health
-	as.GET("/health", rest.GetHealth)
+	g.GET("/health", rest.GetHealth)
 
 	//Session
-	as.POST("/session/check", rest.CheckSession)
-	as.POST("/session/new", rest.NewSession)
-	as.POST("/session/end", rest.EndSession)
+	g.POST("/session/check", rest.CheckSession)
+	g.POST("/session/new", rest.NewSession)
+	g.POST("/session/end", rest.EndSession)
 
 	//Token
-	as.POST("/token/request", rest.RequestToken)
-	as.POST("/token/refresh", rest.RefreshToken)
+	g.POST("/token/request", rest.RequestToken)
+	g.POST("/token/refresh", rest.RefreshToken)
 
 	PrintServiceInformation()
 
