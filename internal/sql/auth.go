@@ -2,8 +2,8 @@ package sql
 
 import (
 	"auth-service/internal/database"
+	"auth-service/internal/models"
 	"auth-service/pkg/constants"
-	"auth-service/pkg/models"
 	"auth-service/pkg/utils"
 	"strings"
 

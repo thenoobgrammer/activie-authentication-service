@@ -28,7 +28,7 @@ func main() {
 	g.GET("/health", rest.GetHealth)
 
 	//Session
-	g.POST("/session/check", rest.CheckSession)
+	g.POST("/session/check", rest.ValidateSession)
 	g.POST("/session/new", rest.NewSession)
 	g.POST("/session/end", rest.EndSession)
 

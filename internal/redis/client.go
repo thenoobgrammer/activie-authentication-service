@@ -60,6 +60,16 @@ func BlacklistSession(token string) error {
 	}
 	return nil
 }
+func IsBlacklisted(token string) (bool, error) {
+	key := fmt.Sprintf("blacklist:%s", token)
+	err := client.Get(ctx, key).Err()
+	if err == redis.Nil {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
 func GetAllKeys() []string {
 	var cursor uint64
 	var keys []string

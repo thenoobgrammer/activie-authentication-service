@@ -1,8 +1,8 @@
 package rest
 
 import (
+	"auth-service/internal/models"
 	"auth-service/internal/service"
-	"auth-service/pkg/models"
 	"auth-service/pkg/utils"
 	"net/http"
 

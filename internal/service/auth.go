@@ -1,8 +1,8 @@
 package service
 
 import (
+	"auth-service/internal/models"
 	sqlutils "auth-service/internal/sql"
-	"auth-service/pkg/models"
 	"auth-service/pkg/utils"
 )
 

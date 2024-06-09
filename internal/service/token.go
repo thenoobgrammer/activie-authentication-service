@@ -1,7 +1,7 @@
 package service
 
 import (
-	"auth-service/pkg/models"
+	"auth-service/internal/models"
 	"auth-service/pkg/utils"
 )
 

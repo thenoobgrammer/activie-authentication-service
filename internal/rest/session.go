@@ -1,9 +1,9 @@
 package rest
 
 import (
+	"auth-service/internal/models"
 	"auth-service/internal/redis"
 	"auth-service/internal/service"
-	"auth-service/pkg/models"
 	"errors"
 	"net/http"
 
@@ -44,7 +44,7 @@ func NewSession(g *gin.Context) {
 
 	g.JSON(http.StatusOK, token)
 }
-func CheckSession(g *gin.Context) {
+func ValidateSession(g *gin.Context) {
 	bearer := g.Query("token")
 
 	if bearer == "" {
@@ -56,11 +56,28 @@ func CheckSession(g *gin.Context) {
 		return
 	}
 
+	yes, err := redis.IsBlacklisted(bearer)
+	if err != nil {
+		g.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"authenticated": false,
+			"message":       "Something went wrong during session validation",
+			"session":       false,
+		})
+	}
+
+	if !yes {
+		g.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"authenticated": false,
+			"message":       "Invalid session",
+			"session":       false,
+		})
+	}
+
 	authenticated, claims := service.ValidateFromBearer(bearer)
 	if !authenticated {
 		g.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"authenticated": false,
-			"message":       "Email or password do not match",
+			"message":       "User does not match",
 			"session":       false,
 		})
 		return

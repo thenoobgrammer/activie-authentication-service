@@ -1,8 +1,8 @@
 package utils
 
 import (
+	"auth-service/internal/models"
 	"auth-service/internal/vault"
-	"auth-service/pkg/models"
 	"errors"
 	"time"
 
