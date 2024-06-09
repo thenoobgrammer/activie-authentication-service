@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  external-service:
+    image: thenoobgrammer/pickside-service:authentication-service-latest
+    container_name: authservice
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+    environment:
+      - VAULT_ADDRESS=https://vault.morpheglus.org
+      - VAULT_TOKEN=${VAULT_TOKEN}
