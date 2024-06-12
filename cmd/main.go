@@ -1,9 +1,8 @@
 package main
 
 import (
+	"auth-service/internal/api"
 	"auth-service/internal/database"
-	"auth-service/internal/redis"
-	"auth-service/internal/rest"
 	"auth-service/internal/vault"
 	"log"
 	"os"
@@ -18,30 +17,23 @@ func main() {
 	database.Initialize(dsn)
 	defer database.Close()
 
-	redis.InitializeClient()
-
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	g := gin.Default()
 	g.Use(cors.New(buildCors()))
 
-	//Health
-	g.GET("/health", rest.GetHealth)
+	g.GET("/health", api.GetHealth)
 
-	//Session
-	g.POST("/session/check", rest.ValidateSession)
-	g.POST("/session/new", rest.NewSession)
-	g.POST("/session/end", rest.EndSession)
-
-	//Token
-	g.POST("/token/request", rest.RequestToken)
-	g.POST("/token/refresh", rest.RefreshToken)
+	g.POST("/bearer-auth", api.BearerAuthentication)
+	g.POST("/change-password", api.ChangePassword)
+	g.POST("/login", api.Login)
+	g.POST("/logout", api.Logout)
+	g.POST("/signup", api.Signup)
 
 	PrintServiceInformation()
 
 	if err := g.Run(":8081"); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
-
 }
 
 func PrintServiceInformation() {

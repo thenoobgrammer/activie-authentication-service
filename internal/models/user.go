@@ -40,30 +40,3 @@ type User struct {
 	ShowPhone             bool       `json:"showPhone,omitempty"`
 	Timezone              string     `json:"timezone,omitempty"`
 }
-
-type AuthenticationRequest struct {
-	AuthType string `json:"authType" validate:"required"`
-}
-
-type SystemUserCrendetialsRequest struct {
-	Email    string `json:"email" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-// type ExternalUserCrendetialsRequest struct {
-// 	AccessToken string `json:"accessToken" validate:"required"`
-// 	Provider    string `json:"provider" validate:"required"`
-// }
-
-type CreateUserRequest struct {
-	AccountType   string
-	Avatar        string `json:"picture,omitempty"`
-	AgreedToTerms bool   `json:"agreedToTerms" validate:"required"`
-	DisplayName   string `json:"displayName" validate:"required"`
-	Email         string `json:"email" validate:"required,email"`
-	EmailVerified bool   `json:"verified_email,omitempty"`
-	ExternalID    string `json:"id,omitempty"`
-	FullName      string `json:"fullName" validate:"required"`
-	Password      string `json:"password,omitempty"`
-	Phone         string `json:"phone"`
-}
