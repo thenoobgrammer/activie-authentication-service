@@ -5,6 +5,7 @@ import (
 	"auth-service/internal/database"
 	"auth-service/internal/vault"
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -13,6 +14,13 @@ import (
 )
 
 func main() {
+	// Loggin initialization
+	logHandler := slog.NewJSONHandler(os.Stdout,
+		&slog.HandlerOptions{Level: slog.LevelDebug}).WithAttrs([]slog.Attr{slog.String("service", "authentication")})
+	logger := slog.New(logHandler)
+	slog.SetDefault(logger)
+	slog.Info("service started")
+
 	dsn := vault.Envars["DSN"].(string)
 	database.Initialize(dsn)
 	defer database.Close()
