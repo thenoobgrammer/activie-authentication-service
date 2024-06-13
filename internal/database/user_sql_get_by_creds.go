@@ -41,7 +41,7 @@ func GetUserByCreds(email string, unhashedPwd string) (*models.User, error) {
 
 	if err := GetClient().QueryRow(selectClause, email).Scan(
 		&user.ID, &user.AccountType, &user.AgreedToTerms, &user.AllowLocationTracking, &user.Avatar, &user.Bio, &user.City, &user.Email,
-		&user.EmailVerified, &user.ExternalID, &user.FullName, &user.Favorites, &user.IsInactive, &user.InactiveDate, &user.JoinDate,
+		&user.EmailVerified, &user.ExternalID, &user.FullName, &user.FavoritesStr, &user.IsInactive, &user.InactiveDate, &user.JoinDate,
 		&user.LocaleRegion, &user.MatchOrganizedCount, &user.MatchPlayedCount, &user.PermissionsString,
 		&user.Phone, &user.PreferredLocale, &user.PreferredRegion, &user.PreferredSport, &user.PreferredTheme,
 		&user.Reliability, &user.Role, &user.Sexe, &user.ShowAge, &user.ShowEmail, &user.ShowGroups, &user.ShowPhone, &user.Timezone,
@@ -52,6 +52,10 @@ func GetUserByCreds(email string, unhashedPwd string) (*models.User, error) {
 
 	user.IDString = utils.Uint64ToString(user.ID)
 	user.Permissions = strings.Split(user.PermissionsString, ",")
+
+	trimmed := strings.Trim(user.FavoritesStr, ",")
+
+	user.Favorites = strings.Split(trimmed, ",")
 
 	return &user, nil
 }

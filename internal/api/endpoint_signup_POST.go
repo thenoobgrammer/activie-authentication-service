@@ -1,9 +1,9 @@
 package api
 
 import (
-	api "auth-service/internal/api/msgs"
 	"auth-service/internal/database"
 	"auth-service/internal/models"
+	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
 	"net/http"
 

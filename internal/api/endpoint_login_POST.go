@@ -1,11 +1,10 @@
 package api
 
 import (
-	api "auth-service/internal/api/msgs"
 	"auth-service/internal/database"
 	"auth-service/internal/models"
+	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,8 +46,6 @@ func Login(g *gin.Context) {
 		api.HandleError(g, api.InvalidCredentials())
 		return
 	}
-
-	log.Println("result", result)
 
 	claims := models.UserClaims{
 		UserID:        result.IDString,

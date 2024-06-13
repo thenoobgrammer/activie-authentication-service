@@ -1,9 +1,7 @@
 package api
 
 import (
-	api "auth-service/internal/api/msgs"
-	"auth-service/internal/redis"
-	"auth-service/pkg/utils"
+	"auth-service/pkg/api"
 	"net/http"
 	"strings"
 
@@ -23,19 +21,5 @@ func Logout(g *gin.Context) {
 		return
 	}
 
-	if err := invalidateTokenInCache(tokenString); err != nil {
-		api.HandleError(g, api.InvalidBearer())
-		return
-	}
-
 	api.HandleSuccess(g, http.StatusOK, "successfully logged out")
-}
-
-func invalidateTokenInCache(token string) error {
-	err := redis.InvalidateActiveSession(token)
-	if err != nil {
-		utils.LogError("invalidateTokenInCache", "Failed to invalidate token", err)
-		return err
-	}
-	return nil
 }

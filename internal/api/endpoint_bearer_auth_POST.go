@@ -1,9 +1,10 @@
 package api
 
 import (
-	api "auth-service/internal/api/msgs"
 	"auth-service/internal/database"
+	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
+	"log"
 	"net/http"
 	"strings"
 
@@ -36,6 +37,7 @@ func BearerAuthentication(g *gin.Context) {
 		api.HandleError(g, api.NotFound())
 	}
 
+	log.Println("result", result)
 	api.HandleSuccess(g, http.StatusOK, gin.H{
 		"user": result,
 	})
