@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         SERVICE_NAME = 'authentication-service'
+        CONTAINER_NAME='authsvc'
         DOCKERHUB_CREDENTIALS = credentials('docker-creds')
         DOCKERHUB_USERNAME = 'thenoobgrammer'
         REPO_BASE = 'pickside-service'
@@ -62,7 +63,7 @@ pipeline {
                                 docker run -d \
                                     -e VAULT_TOKEN=${VAULT_TOKEN} \
                                     -e VAULT_ADDRESS=${VAULT_ADDRESS} \
-                                    --name ${SERVICE_NAME} \
+                                    --name ${CONTAINER_NAME} \
                                     -p 8081:8081 \
                                     ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest;
                             "
