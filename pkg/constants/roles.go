@@ -1,0 +1,7 @@
+package constants
+
+const (
+	MANAGE_ACTIVITIES = "CREATE_ACTIVITY"
+	MANAGE_GROUPS     = "CREATE_GROUP"
+	MANAGE_TEAMS      = "CREATE_GROUP"
+)
