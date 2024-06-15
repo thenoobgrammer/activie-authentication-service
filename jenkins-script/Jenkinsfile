@@ -62,8 +62,7 @@ pipeline {
                                 docker run -d \
                                     -e VAULT_TOKEN=${VAULT_TOKEN} \
                                     -e VAULT_ADDRESS=${VAULT_ADDRESS} \
-                                    -e AUTHENTICATION_SERVICE_BASE_URL=https://pickside-service.com/auth-service \
-                                    --name pickside-${SERVICE_NAME}-prod \
+                                    --name ${SERVICE_NAME} \
                                     -p 8081:8081 \
                                     ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest;
                             "
