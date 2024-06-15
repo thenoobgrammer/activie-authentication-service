@@ -5,6 +5,7 @@ import (
 	"auth-service/internal/models"
 	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -54,7 +55,18 @@ func Signup(g *gin.Context) {
 		return
 	}
 
-	err := database.CreateUser(req.AccountType, &req.Avatar, req.DisplayName, req.Email, &req.ExternalID, req.FullName, req.Password, &req.Phone)
+	exists, err := database.EmailExists(req.Email)
+	if err != nil {
+		api.HandleError(g, api.NewInternalServerError(err))
+		return
+	}
+	if exists {
+		log.Println("Email exists")
+		api.HandleError(g, api.EmailExists())
+		return
+	}
+
+	err = database.CreateUser(req.AccountType, &req.Avatar, req.DisplayName, req.Email, &req.ExternalID, req.FullName, req.Password, &req.Phone)
 	if err != nil {
 		api.HandleError(g, api.NewInternalServerError(err))
 		return

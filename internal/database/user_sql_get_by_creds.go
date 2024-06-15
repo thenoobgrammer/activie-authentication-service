@@ -12,9 +12,7 @@ import (
 func GetUserByCreds(email string, unhashedPwd string) (*models.User, error) {
 	var user models.User
 
-	selectClause := `
-		SELECT password FROM users WHERE email = ?
-	`
+	selectClause := "SELECT password FROM users WHERE email = ?"
 
 	var hashedPwd string
 

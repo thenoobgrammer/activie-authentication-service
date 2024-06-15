@@ -53,8 +53,6 @@ func isPwdValid(pwd string) bool {
 			hasLower = true
 		case unicode.IsDigit(char):
 			hasDigit = true
-			// case unicode.IsPunct(char) || unicode.IsSymbol(char):
-			// 	hasSpecial = true
 		}
 	}
 
