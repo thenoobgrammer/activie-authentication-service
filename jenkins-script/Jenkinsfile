@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SERVICE_NAME = 'authentication-service'
-        CONTAINER_NAME='authsvc'
+        CONTAINER_NAME = 'authsvc'
         DOCKERHUB_CREDENTIALS = credentials('docker-creds')
         DOCKERHUB_USERNAME = 'thenoobgrammer'
         REPO_BASE = 'pickside-service'
@@ -57,11 +57,11 @@ pipeline {
                                 docker pull thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
 
                                 echo 'Removing old container...';
-                                if [ "$(docker ps -a -q -f name=${CONTAINER_NAME}" ]; then
-                                    echo "Removing existing container: ${CONTAINER_NAME}"
+                                if [ \$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then
+                                    echo 'Removing existing container: ${CONTAINER_NAME}'
                                     docker rm -f ${CONTAINER_NAME};
                                 else
-                                    echo "No existing container named ${CONTAINER_NAME} found"
+                                    echo 'No existing container named ${CONTAINER_NAME} found'
                                 fi
 
                                 echo 'Running new container...';
