@@ -57,7 +57,7 @@ pipeline {
                                 docker pull thenoobgrammer/pickside-service:${SERVICE_NAME}-latest;
 
                                 echo 'Removing old container...';
-                                docker rm -f pickside-${SERVICE_NAME}-prod;
+                                docker rm -f ${CONTAINER_NAME};
 
                                 echo 'Running new container...';
                                 docker run -d \
