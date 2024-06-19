@@ -4,7 +4,7 @@ networks:
 
 services:
   authsvc:
-    image: thenoobgrammer/pickside-service:authentication-service-latest
+    build: .
     container_name: authsvc
     ports:
       - "8081:8081"
