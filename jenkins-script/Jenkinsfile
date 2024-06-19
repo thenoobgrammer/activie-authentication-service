@@ -64,6 +64,7 @@ pipeline {
                                     -e VAULT_TOKEN=${VAULT_TOKEN} \
                                     -e VAULT_ADDRESS=${VAULT_ADDRESS} \
                                     --name ${CONTAINER_NAME} \
+                                    --network pickside-network \
                                     -p 8081:8081 \
                                     ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-latest;
                             "
