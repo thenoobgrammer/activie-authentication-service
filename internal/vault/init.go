@@ -1,8 +1,9 @@
 package vault
 
 import (
+	"auth-service/pkg/env"
 	"log"
-	"os"
+	"log/slog"
 
 	vaultclient "github.com/hashicorp/vault/api"
 )
@@ -11,18 +12,15 @@ var (
 	Envars map[string]interface{}
 )
 
-func init() {
+func InitializeVault() {
 	client, err := vaultclient.NewClient(&vaultclient.Config{
-		Address: os.Getenv("VAULT_ADDRESS"),
+		Address: env.VAULT_ADDRESS,
 	})
 	if err != nil {
 		log.Fatalf("Error initializing Vault client: %s", err)
 	}
 
-	vaultToken := os.Getenv("VAULT_TOKEN")
-	if vaultToken == "" {
-		log.Fatal("VAULT_TOKEN is not set")
-	}
+	vaultToken := env.VAULT_TOKEN
 	client.SetToken(vaultToken)
 
 	path := "pickside/data/credentials"
@@ -41,7 +39,7 @@ func init() {
 		log.Fatal("Secret structure is not as expected. Unable to find 'data' map.")
 	}
 
-	log.Println("Service is connected to Vault.")
+	slog.Info("Connected to Vault", "success", true)
 
 	Envars = data
 }

@@ -24,6 +24,5 @@ func HandleError(g *gin.Context, err error) {
 }
 
 func HandleSuccess(g *gin.Context, statusCode int, data interface{}) {
-	//apiResponse := NewAPIResponse(statusCode, data)
 	g.JSON(statusCode, data)
 }

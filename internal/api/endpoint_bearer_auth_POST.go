@@ -2,6 +2,7 @@ package api
 
 import (
 	"auth-service/internal/database"
+	"auth-service/internal/vault"
 	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
 	"log"
@@ -24,7 +25,9 @@ func BearerAuthentication(g *gin.Context) {
 		return
 	}
 
-	claims, err := utils.GetClaims(tokenString)
+	secretKey := vault.Envars["TOKEN_SECRET"].(string)
+
+	claims, err := utils.GetClaims(tokenString, secretKey)
 	if err != nil {
 		api.HandleError(g, api.InvalidBearer())
 		return
