@@ -1,14 +1,15 @@
+networks:
+  pickside-network:
+    external: true
+
 services:
-  external-service:
+  authsvc:
     image: thenoobgrammer/pickside-service:authentication-service-latest
     container_name: authservice
     ports:
       - "8081:8081"
     networks:
-      - app-network
+      - pickside-network
     environment:
       - VAULT_ADDRESS=https://vault.morpheglus.org
       - VAULT_TOKEN=${VAULT_TOKEN}
-networks:
-  app-network:
-    driver: bridge
