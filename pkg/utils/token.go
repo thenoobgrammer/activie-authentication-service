@@ -14,7 +14,7 @@ type UserClaims struct {
 	Scopes        bool   `json:"scopes,omitempty" validate:"required"`
 }
 
-func GetClaims(tokenString string, secretKey string) (*UserClaims, error) {
+func GetClaims(tokenString string, secretKey []byte) (*UserClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
@@ -30,7 +30,7 @@ func GetClaims(tokenString string, secretKey string) (*UserClaims, error) {
 		EmailVerified: claims["email_verified"].(bool),
 	}, nil
 }
-func GenerateToken(claims UserClaims, secretKey string) (*string, error) {
+func GenerateToken(claims UserClaims, secretKey []byte) (*string, error) {
 	if claims.Email == "" || claims.UserID == "" {
 		return nil, errors.New("invalid claims")
 	}
@@ -44,6 +44,10 @@ func GenerateToken(claims UserClaims, secretKey string) (*string, error) {
 	mapClaims["exp"] = time.Now().AddDate(1, 0, 0).Unix()
 
 	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		LogError("GenerateToken", "error during signing token", err)
+		return nil, err
+	}
 
-	return &tokenString, err
+	return &tokenString, nil
 }

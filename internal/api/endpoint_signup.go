@@ -5,7 +5,6 @@ import (
 	"auth-service/internal/vault"
 	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -61,7 +60,6 @@ func Signup(g *gin.Context) {
 		return
 	}
 	if exists {
-		log.Println("Email exists")
 		api.HandleError(g, api.EmailExists())
 		return
 	}
@@ -86,7 +84,7 @@ func Signup(g *gin.Context) {
 
 	secretKey := vault.Envars["TOKEN_SECRET"].(string)
 
-	token, err := utils.GenerateToken(claims, secretKey)
+	token, err := utils.GenerateToken(claims, []byte(secretKey))
 	if err != nil {
 		api.HandleError(g, api.OperationFailed())
 		return

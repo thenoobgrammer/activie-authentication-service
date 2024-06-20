@@ -55,7 +55,7 @@ func Login(g *gin.Context) {
 
 	secretKey := vault.Envars["TOKEN_SECRET"].(string)
 
-	token, err := utils.GenerateToken(claims, secretKey)
+	token, err := utils.GenerateToken(claims, []byte(secretKey))
 	if err != nil {
 		api.HandleError(g, api.OperationFailed())
 		return
