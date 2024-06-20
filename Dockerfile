@@ -16,11 +16,6 @@ WORKDIR /app
 
 COPY --from=builder /bin/authentication-service /app/
 
-ARG VERSION
-
-ENV SERVICE_NAME="authentication-service" \
-    SERVICE_VERSION=${VERSION}
-
 EXPOSE 8081
 
 CMD ["/app/authentication-service"]
