@@ -4,6 +4,7 @@ import (
 	"auth-service/internal/api"
 	"auth-service/internal/database"
 	"auth-service/internal/vault"
+	"auth-service/pkg/env"
 	"log"
 	"log/slog"
 	"os"
@@ -14,16 +15,22 @@ import (
 )
 
 func main() {
+	// Env intialization
+	env.InitalizeEnvs()
+
+	// Vault initialization
+	vault.InitializeVault()
+
+	// DB initialization
+	database.InitializeDB(vault.Envars["DSN"].(string))
+	defer database.Close()
+
 	// Loggin initialization
 	logHandler := slog.NewJSONHandler(os.Stdout,
 		&slog.HandlerOptions{Level: slog.LevelDebug}).WithAttrs([]slog.Attr{slog.String("service", "authentication")})
 	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
 	slog.Info("service started")
-
-	dsn := vault.Envars["DSN"].(string)
-	database.Initialize(dsn)
-	defer database.Close()
 
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	g := gin.Default()
@@ -45,9 +52,9 @@ func main() {
 }
 
 func PrintServiceInformation() {
-	log.Printf("Mode %s", os.Getenv("GIN_MODE"))
-	log.Printf("Service name: %s", os.Getenv("SERVICE_NAME"))
-	log.Printf("Version: %s", os.Getenv("SERVICE_VERSION"))
+	log.Printf("Mode %s", env.GIN_MODE)
+	log.Printf("Service name: %s", env.SERVICE_NAME)
+	log.Printf("Version: %s", env.VERSION)
 }
 
 func buildCors() cors.Config {

@@ -18,6 +18,6 @@ func LogDebug(method string, message string, key string) {
 	slog.Debug("method", method, "msg", message, key)
 }
 
-func LogWarn(method string, message string, key string) {
+func LogWarn(method string, message string, key any) {
 	slog.Warn("method", method, "msg", message, key)
 }

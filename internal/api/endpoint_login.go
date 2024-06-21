@@ -2,7 +2,7 @@ package api
 
 import (
 	"auth-service/internal/database"
-	"auth-service/internal/models"
+	"auth-service/internal/vault"
 	"auth-service/pkg/api"
 	"auth-service/pkg/utils"
 	"net/http"
@@ -47,13 +47,15 @@ func Login(g *gin.Context) {
 		return
 	}
 
-	claims := models.UserClaims{
+	claims := utils.UserClaims{
 		UserID:        result.IDString,
 		Email:         result.Email,
 		EmailVerified: result.EmailVerified,
 	}
 
-	token, err := utils.GenerateToken(claims)
+	secretKey := vault.Envars["TOKEN_SECRET"].(string)
+
+	token, err := utils.GenerateToken(claims, []byte(secretKey))
 	if err != nil {
 		api.HandleError(g, api.OperationFailed())
 		return

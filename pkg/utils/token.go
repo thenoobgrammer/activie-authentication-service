@@ -1,17 +1,20 @@
 package utils
 
 import (
-	"auth-service/internal/models"
-	"auth-service/internal/vault"
 	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte(vault.Envars["TOKEN_SECRET"].(string))
+type UserClaims struct {
+	UserID        string `json:"userId" validate:"required"`
+	Email         string `json:"email" validate:"required"`
+	EmailVerified bool   `json:"emailVerified" validate:"required"`
+	Scopes        bool   `json:"scopes,omitempty" validate:"required"`
+}
 
-func GetClaims(tokenString string) (*models.UserClaims, error) {
+func GetClaims(tokenString string, secretKey []byte) (*UserClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
@@ -21,13 +24,13 @@ func GetClaims(tokenString string) (*models.UserClaims, error) {
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	return &models.UserClaims{
+	return &UserClaims{
 		UserID:        claims["user_id"].(string),
 		Email:         claims["email"].(string),
 		EmailVerified: claims["email_verified"].(bool),
 	}, nil
 }
-func GenerateToken(claims models.UserClaims) (*string, error) {
+func GenerateToken(claims UserClaims, secretKey []byte) (*string, error) {
 	if claims.Email == "" || claims.UserID == "" {
 		return nil, errors.New("invalid claims")
 	}
@@ -41,6 +44,10 @@ func GenerateToken(claims models.UserClaims) (*string, error) {
 	mapClaims["exp"] = time.Now().AddDate(1, 0, 0).Unix()
 
 	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		LogError("GenerateToken", "error during signing token", err)
+		return nil, err
+	}
 
-	return &tokenString, err
+	return &tokenString, nil
 }
