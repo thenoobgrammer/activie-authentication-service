@@ -25,7 +25,7 @@ pipeline {
         stage('Build and Push') {
             steps {
                 script {
-                    dir("../deploy-${SERVICE_NAME}") {
+                    dir("../deploy-authentication-service") {
                         sh """
                             export DOCKER_CLI_EXPERIMENTAL=enabled
                             docker build -t ${DOCKERHUB_USERNAME}/${REPO_BASE}:${SERVICE_NAME}-${TAG} .
