@@ -28,7 +28,7 @@ func InvalidRequestData(errors map[string]string) APIError {
 	}
 }
 func EmailExists() APIError {
-	return NewAPIError(http.StatusBadRequest, fmt.Errorf("email already in use"))
+	return NewAPIError(http.StatusConflict, fmt.Errorf("email already in use"))
 }
 
 func InvalidJSON() APIError {

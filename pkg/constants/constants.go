@@ -1,10 +1,10 @@
 package constants
 
 const (
-	MANAGE_ACTIVITIES        = "MANAGE_ACTIVITIES"
-	MANAGE_GROUPS            = "MANAGE_GROUPS"
-	MANAGE_TEAMS             = "MANAGE_TEAMS"
-	REGISTER          string = "REGISTER"
+	MANAGE_ACTIVITIES = "MANAGE_ACTIVITIES"
+	MANAGE_GROUPS     = "MANAGE_GROUPS"
+	MANAGE_TEAMS      = "MANAGE_TEAMS"
+	REGISTER          = "REGISTER"
 )
 
 const (

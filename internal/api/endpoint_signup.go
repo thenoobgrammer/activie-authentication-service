@@ -72,7 +72,7 @@ func Signup(g *gin.Context) {
 
 	result, err := database.GetUserByCreds(req.Email, req.Password)
 	if err != nil {
-		api.HandleError(g, api.InvalidCredentials())
+		api.HandleError(g, api.NewInternalServerError(err))
 		return
 	}
 
