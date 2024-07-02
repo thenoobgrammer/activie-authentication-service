@@ -27,6 +27,7 @@ type User struct {
 	Permissions           []string   `json:"permissions,omitempty"`
 	Phone                 string     `json:"phone,omitempty"`
 	PreferredLocale       string     `json:"preferredLocale,omitempty"`
+	PreferredLocation     *string    `json:"preferredLocation,omitempty"`
 	PreferredRegion       string     `json:"preferredRegion,omitempty"`
 	PreferredSport        string     `json:"preferredSport,omitempty"`
 	PreferredTheme        string     `json:"preferredTheme,omitempty"`
