@@ -12,18 +12,25 @@ const (
 	HASH_SALT = 10
 )
 
-func CreateUser(accountType string, avatar *string, displayName string, email string, externalID *string, fullName string, unhashedPwd string, phone *string) error {
+func CreateUser(displayName string, email string, externalID *string, fullName string, lat string, lng string, unhashedPwd string, region string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(unhashedPwd), HASH_SALT)
 	if err != nil {
 		utils.LogError("CreateUser", constants.ERROR_DURING_ROW_SCAN, err)
 		panic(err)
 	}
 
+	var accountType string
+
+	if externalID != nil {
+		accountType = "external"
+	} else {
+		accountType = "system"
+	}
+
 	insertClause := `
 		INSERT INTO users (
 			account_type,
 			agreed_to_terms,
-		 	avatar,
 			display_name,
 			email,
 			email_verified,
@@ -31,8 +38,9 @@ func CreateUser(accountType string, avatar *string, displayName string, email st
 			full_name,
 			password,
 			permissions,
-			phone,
 			preferred_locale,
+			preferred_location,
+			preferred_region,
 			preferred_theme,
 			role
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -40,7 +48,6 @@ func CreateUser(accountType string, avatar *string, displayName string, email st
 	if _, err = GetClient().Exec(insertClause,
 		accountType,
 		true,
-		avatar,
 		displayName,
 		email,
 		false,
@@ -48,8 +55,9 @@ func CreateUser(accountType string, avatar *string, displayName string, email st
 		fullName,
 		string(hashedPassword),
 		strings.Join(constants.DEFAULT_PERMISSIONS[:], ","),
-		phone,
 		"en",
+		strings.Join([]string{lat, lng}, ","),
+		region,
 		"light",
 		constants.USER,
 	); err != nil {
