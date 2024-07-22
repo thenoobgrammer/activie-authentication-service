@@ -11,24 +11,20 @@ import (
 )
 
 type SignupRequest struct {
-	AccountType   string
-	Avatar        string `json:"picture,omitempty"`
 	AgreedToTerms bool   `json:"agreedToTerms" validate:"required"`
 	DisplayName   string `json:"displayName" validate:"required"`
 	Email         string `json:"email" validate:"required,email"`
-	EmailVerified bool   `json:"verified_email,omitempty"`
 	ExternalID    string `json:"id,omitempty"`
 	FullName      string `json:"fullName" validate:"required"`
-	Password      string `json:"password,omitempty"`
-	Phone         string `json:"phone"`
+	Lat           string `json:"lat" validate:"required"`
+	Lng           string `json:"lng" validate:"required"`
+	Password      string `json:"password"`
+	Region        string `json:"region" validate:"required"`
 }
 
 func (req *SignupRequest) Validate() map[string]string {
 	var errors = make(map[string]string)
 
-	if req.AccountType == "" || (req.AccountType != "external" && req.AccountType != "system") {
-		errors["accountType"] = "account type is missing"
-	}
 	if !req.AgreedToTerms {
 		errors["agreedToTerms"] = "user needs to agree to terms"
 	}
@@ -64,7 +60,7 @@ func Signup(g *gin.Context) {
 		return
 	}
 
-	err = database.CreateUser(req.AccountType, &req.Avatar, req.DisplayName, req.Email, &req.ExternalID, req.FullName, req.Password, &req.Phone)
+	err = database.CreateUser(req.DisplayName, req.Email, &req.ExternalID, req.FullName, req.Lat, req.Lng, req.Password, req.Region)
 	if err != nil {
 		api.HandleError(g, api.NewInternalServerError(err))
 		return
