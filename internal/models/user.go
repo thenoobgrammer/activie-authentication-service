@@ -18,7 +18,7 @@ type User struct {
 	FullName              string     `json:"fullName,omitempty"`
 	InactiveDate          *time.Time `json:"inactiveDate,omitempty"`
 	IsInactive            bool       `json:"isInactive,omitempty"`
-	JoinDate              time.Time  `json:"joinDate,omitempty"`
+	JoinDate              *time.Time `json:"joinDate,omitempty"`
 	LocaleRegion          *string    `json:"localeRegion,omitempty"`
 	MatchOrganizedCount   int        `json:"matchOrganizedCount,omitempty"`
 	MatchPlayedCount      int        `json:"matchPlayedCount,omitempty"`

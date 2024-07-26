@@ -73,9 +73,11 @@ func Signup(g *gin.Context) {
 	}
 
 	claims := utils.UserClaims{
-		UserID:        result.IDString,
-		Email:         result.Email,
-		EmailVerified: result.EmailVerified,
+		AccountType: result.AccountType,
+		Email:       result.Email,
+		Permissions: result.PermissionsString,
+		Role:        result.Role,
+		UserID:      result.IDString,
 	}
 
 	secretKey := vault.Envars["TOKEN_SECRET"].(string)

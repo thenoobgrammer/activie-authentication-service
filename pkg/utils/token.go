@@ -5,13 +5,15 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kr/pretty"
 )
 
 type UserClaims struct {
-	UserID        string `json:"userId" validate:"required"`
-	Email         string `json:"email" validate:"required"`
-	EmailVerified bool   `json:"emailVerified" validate:"required"`
-	Scopes        bool   `json:"scopes,omitempty" validate:"required"`
+	AccountType string `json:"accountType" validate:"required"`
+	Email       string `json:"email" validate:"required"`
+	Permissions string `json:"permissions" validate:"required"`
+	Role        string `json:"role" validate:"required"`
+	UserID      string `json:"userId" validate:"required"`
 }
 
 func GetClaims(tokenString string, secretKey []byte) (*UserClaims, error) {
@@ -23,11 +25,12 @@ func GetClaims(tokenString string, secretKey []byte) (*UserClaims, error) {
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-
 	return &UserClaims{
-		UserID:        claims["user_id"].(string),
-		Email:         claims["email"].(string),
-		EmailVerified: claims["email_verified"].(bool),
+		AccountType: claims["account_type"].(string),
+		Email:       claims["email"].(string),
+		Permissions: claims["permissions"].(string),
+		Role:        claims["role"].(string),
+		UserID:      claims["user_id"].(string),
 	}, nil
 }
 func GenerateToken(claims UserClaims, secretKey []byte) (*string, error) {
@@ -38,10 +41,14 @@ func GenerateToken(claims UserClaims, secretKey []byte) (*string, error) {
 
 	mapClaims := token.Claims.(jwt.MapClaims)
 
-	mapClaims["user_id"] = claims.UserID
+	mapClaims["account_type"] = claims.UserID
 	mapClaims["email"] = claims.Email
-	mapClaims["email_verified"] = claims.EmailVerified
+	mapClaims["permissions"] = claims.Permissions
+	mapClaims["role"] = claims.Role
+	mapClaims["user_id"] = claims.UserID
 	mapClaims["exp"] = time.Now().AddDate(1, 0, 0).Unix()
+
+	pretty.Println("mapsClaims", mapClaims)
 
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
