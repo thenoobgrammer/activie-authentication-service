@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/kr/pretty"
 )
 
 type UserClaims struct {
@@ -47,8 +46,6 @@ func GenerateToken(claims UserClaims, secretKey []byte) (*string, error) {
 	mapClaims["role"] = claims.Role
 	mapClaims["user_id"] = claims.UserID
 	mapClaims["exp"] = time.Now().AddDate(1, 0, 0).Unix()
-
-	pretty.Println("mapsClaims", mapClaims)
 
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
