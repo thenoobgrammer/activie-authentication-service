@@ -72,8 +72,13 @@ func ChangePassword(g *gin.Context) {
 		return
 	}
 
-	if err := database.ChangePassword(req.Email, req.UserID, req.CurrentPassword, req.NewPassword); err != nil {
+	ok, err := database.ChangePassword(req.Email, req.UserID, req.CurrentPassword, req.NewPassword)
+	if err != nil {
 		api.HandleError(g, api.NewInternalServerError(err))
+		return
+	}
+	if !ok {
+		api.HandleError(g, api.BadRequest())
 		return
 	}
 
