@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -37,6 +38,8 @@ func main() {
 	g.Use(cors.New(buildCors()))
 
 	g.GET("/health", api.GetHealth)
+
+	g.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	g.POST("/bearer-auth", api.BearerAuthentication)
 	g.POST("/change-password", api.ChangePassword)
