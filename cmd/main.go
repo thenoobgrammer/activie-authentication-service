@@ -4,6 +4,7 @@ import (
 	"auth-service/internal/api"
 	"auth-service/internal/database"
 	"auth-service/internal/vault"
+	"auth-service/middlewares"
 	"auth-service/pkg/env"
 	"log"
 	"log/slog"
@@ -36,6 +37,7 @@ func main() {
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	g := gin.Default()
 	g.Use(cors.New(buildCors()))
+	g.Use(middlewares.RequestMetricsMiddleware())
 
 	g.GET("/health", api.GetHealth)
 
