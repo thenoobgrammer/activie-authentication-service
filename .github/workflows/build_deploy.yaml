@@ -57,5 +57,5 @@ jobs:
               -e ENV=prod \
               --name ${{ env.SERVICE_NAME }} \
               --network pickside-network \
-              -p 8080:8080 \
+              -p 8081:8081 \
               ${{ env.IMAGE }}
