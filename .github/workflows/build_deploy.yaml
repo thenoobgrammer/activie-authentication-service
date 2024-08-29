@@ -1,0 +1,61 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, Linux, X64]
+
+    env:
+      SERVICE_NAME: "authsvc"
+      IMAGE: "${{secrets.DOCKERHUB_USERNAME}}/authsvc:latest"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and Push Docker image
+        run: |
+          docker build -t ${{ env.IMAGE }} .
+          docker push ${{ env.IMAGE }}
+
+      - name: Clean up Docker images
+        run: |
+          docker rmi ${{ env.IMAGE }} || true
+
+      - name: Restart Service on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: "ubuntu"
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker ps -q --filter 'name=!vault' | xargs -r docker stop
+
+            echo 'Pulling latest images for external service...'
+            docker pull ${{ env.IMAGE }}
+
+            echo 'Removing old container...'
+            docker ps -aq --filter 'name=${{ env.SERVICE_NAME }}' | xargs -r docker rm -f
+
+            echo 'Running new container...'
+            docker run -d \
+              -e VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
+              -e VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
+              -e ENV=prod \
+              --name ${{ env.SERVICE_NAME }} \
+              --network pickside-network \
+              -p 8080:8080 \
+              ${{ env.IMAGE }}
