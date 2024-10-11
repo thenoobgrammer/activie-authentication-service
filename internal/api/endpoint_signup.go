@@ -16,10 +16,8 @@ type SignupRequest struct {
 	Email         string `json:"email" validate:"required,email"`
 	ExternalID    string `json:"id,omitempty"`
 	FullName      string `json:"fullName" validate:"required"`
-	Lat           string `json:"lat" validate:"required"`
-	Lng           string `json:"lng" validate:"required"`
+	PreferredCity string `json:"preferredCity" validate:"required"`
 	Password      string `json:"password"`
-	Region        string `json:"region" validate:"required"`
 }
 
 func (req *SignupRequest) Validate() map[string]string {
@@ -33,6 +31,9 @@ func (req *SignupRequest) Validate() map[string]string {
 	}
 	if req.Password == "" {
 		errors["password"] = "password is required"
+	}
+	if req.PreferredCity == "" {
+		errors["preferredCity"] = "preferredCity is required"
 	}
 
 	return errors
@@ -60,7 +61,7 @@ func Signup(g *gin.Context) {
 		return
 	}
 
-	err = database.CreateUser(req.DisplayName, req.Email, &req.ExternalID, req.FullName, req.Lat, req.Lng, req.Password, req.Region)
+	err = database.CreateUser(req.DisplayName, req.Email, &req.ExternalID, req.FullName, req.PreferredCity, req.Password)
 	if err != nil {
 		api.HandleError(g, api.NewInternalServerError(err))
 		return

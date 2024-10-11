@@ -12,7 +12,7 @@ const (
 	HASH_SALT = 10
 )
 
-func CreateUser(displayName string, email string, externalID *string, fullName string, lat string, lng string, unhashedPwd string, region string) error {
+func CreateUser(displayName string, email string, externalID *string, fullName string, preferredCity string, unhashedPwd string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(unhashedPwd), HASH_SALT)
 	if err != nil {
 		utils.LogError("CreateUser", constants.ERROR_DURING_ROW_SCAN, err)
@@ -38,12 +38,11 @@ func CreateUser(displayName string, email string, externalID *string, fullName s
 			full_name,
 			password,
 			permissions,
+			preferred_city,
 			preferred_locale,
-			preferred_location,
-			preferred_region,
 			preferred_theme,
 			role
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	if _, err = GetClient().Exec(insertClause,
 		accountType,
@@ -55,9 +54,8 @@ func CreateUser(displayName string, email string, externalID *string, fullName s
 		fullName,
 		string(hashedPassword),
 		strings.Join(constants.DEFAULT_PERMISSIONS[:], ","),
+		preferredCity,
 		"en",
-		strings.Join([]string{lat, lng}, ","),
-		region,
 		"light",
 		constants.USER,
 	); err != nil {
