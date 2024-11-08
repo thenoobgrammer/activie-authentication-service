@@ -2,26 +2,26 @@ package utils
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetBearer(g *gin.Context) *string {
-	authorizationHeader := strings.Split(g.GetHeader("Authorization"), " ")
-
-	if len(authorizationHeader) < 2 || strings.ToLower(authorizationHeader[0]) != "bearer" {
-		g.JSON(http.StatusForbidden, gin.H{
-			"status":  "Unauthorized",
-			"message": jwt.ErrTokenMalformed,
-			"success": false,
-		})
+func ExtractToken(authHeader string) *string {
+	if authHeader == "" {
 		return nil
 	}
-
-	return &authorizationHeader[1]
+	slice := strings.Split(authHeader, " ")
+	if len(slice) < 2 {
+		return nil
+	}
+	if slice[0] == "" || slice[0] != "Bearer" {
+		return nil
+	}
+	if slice[1] == "" {
+		return nil
+	}
+	return &slice[1]
 }
 
 func SetBearer(g *gin.Context, token string) {

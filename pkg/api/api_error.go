@@ -27,8 +27,13 @@ func InvalidRequestData(errors map[string]string) APIError {
 		Msg:        errors,
 	}
 }
+
 func EmailExists() APIError {
 	return NewAPIError(http.StatusConflict, fmt.Errorf("email already in use"))
+}
+
+func FailedToCreateSession() APIError {
+	return NewAPIError(http.StatusInternalServerError, fmt.Errorf("failed to create session"))
 }
 
 func InvalidJSON() APIError {
@@ -45,6 +50,14 @@ func InvalidHeaderRequest() APIError {
 
 func InvalidBearer() APIError {
 	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid bearer"))
+}
+
+func SessionNotFound() APIError {
+	return NewAPIError(http.StatusNotFound, fmt.Errorf("session not found - please login"))
+}
+
+func InvalidClaims() APIError {
+	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid claims"))
 }
 
 func InvalidCredentials() APIError {
@@ -65,6 +78,10 @@ func Unauthorized() APIError {
 
 func Forbidden() APIError {
 	return NewAPIError(http.StatusForbidden, fmt.Errorf("forbidden access"))
+}
+
+func FailedToGenerateBearerToken() APIError {
+	return NewAPIError(http.StatusInternalServerError, fmt.Errorf("failed to generate bearer token"))
 }
 
 func OperationFailed() APIError {

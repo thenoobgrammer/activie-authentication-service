@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth-service/internal/api"
+	api_session "auth-service/internal/api/session"
 	"auth-service/internal/database"
 	"auth-service/internal/vault"
 	"auth-service/middlewares"
@@ -43,11 +44,10 @@ func main() {
 
 	g.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	g.POST("/bearer-auth", api.BearerAuthentication)
-	g.POST("/change-password", api.ChangePassword)
-	g.POST("/login", api.Login)
-	g.POST("/logout", api.Logout)
-	g.POST("/signup", api.Signup)
+	// Sessions
+	g.GET("/sessions", api_session.GetSession)
+	g.POST("/sessions/start", api_session.StartSession)
+	g.DELETE("/sessions/end", api_session.EndSession)
 
 	PrintServiceInformation()
 
