@@ -13,3 +13,11 @@ services:
     environment:
       - VAULT_ADDRESS=${VAULT_ADDRESS}
       - VAULT_TOKEN=${VAULT_TOKEN}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
