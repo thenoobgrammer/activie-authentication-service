@@ -22,10 +22,10 @@ func main() {
 	env.InitalizeEnvs()
 
 	// Vault initialization
-	vault.InitializeVault()
+	vault.InitializeVault(vault.VaultOptions{DefaultToEnv: false})
 
 	// DB initialization
-	database.InitializeDB(vault.Envars["DSN"].(string))
+	database.InitializeDB(env.DSN)
 	defer database.Close()
 
 	// Loggin initialization

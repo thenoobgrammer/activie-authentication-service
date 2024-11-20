@@ -10,7 +10,7 @@ func LogError(method string, message string, err error, other ...string) {
 	}
 }
 
-func LogInfo(method string, message string, key string) {
+func LogInfo(method string, message string, key any) {
 	slog.Info("method", method, "msg", message, key)
 }
 

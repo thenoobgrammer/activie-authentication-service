@@ -3,8 +3,8 @@ package api_session
 import (
 	database_session "auth-service/internal/database/session"
 	"auth-service/internal/models"
-	"auth-service/internal/vault"
 	"auth-service/pkg/api"
+	"auth-service/pkg/env"
 	"auth-service/pkg/utils"
 	"net/http"
 
@@ -19,7 +19,7 @@ func StartSession(g *gin.Context) {
 		return
 	}
 
-	key := vault.Envars["TOKEN_SECRET"].(string)
+	key := env.TOKEN_SECRET
 
 	token := utils.GenerateToken(utils.UserClaims{
 		AccountType: req.AccountType,

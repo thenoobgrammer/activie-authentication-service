@@ -3,7 +3,6 @@ package env
 import (
 	"auth-service/pkg/utils"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -13,20 +12,13 @@ var (
 	VAULT_TOKEN   = ""
 	SERVICE_NAME  = "Authentication service"
 	VERSION       = ""
+
+	DSN          = ""
+	TOKEN_SECRET = ""
 )
 
 func InitalizeEnvs() {
 	env := os.Getenv("ENV")
-	vaultAddress := os.Getenv("VAULT_ADDRESS")
-	vaultToken := os.Getenv("VAULT_TOKEN")
-
-	if vaultAddress == "" {
-		log.Fatal("GetCurrentEnv", "current vault address is not set, please set it. run 'export VAULT_ADDRESS=<VAULT_ADDRESS>'", nil)
-	}
-
-	if vaultToken == "" {
-		log.Fatal("GetCurrentEnv", "current vault token is not set, please set it. run 'export VAULT_TOKEN=<VAULT_TOKEN>'", nil)
-	}
 
 	if env == "" {
 		utils.LogWarn("GetCurrentEnv", "current env is not set, defaulting to dev", nil)
@@ -47,7 +39,4 @@ func InitalizeEnvs() {
 	default:
 		GIN_MODE = "debug"
 	}
-
-	VAULT_ADDRESS = vaultAddress
-	VAULT_TOKEN = vaultToken
 }

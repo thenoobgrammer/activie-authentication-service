@@ -2,27 +2,57 @@ package vault
 
 import (
 	"auth-service/pkg/env"
+	"auth-service/pkg/utils"
 	"log"
 	"log/slog"
+	"os"
 
 	vaultclient "github.com/hashicorp/vault/api"
+	"github.com/joho/godotenv"
 )
 
-var (
-	Envars map[string]interface{}
-)
+type VaultOptions struct {
+	DefaultToEnv bool
+}
 
-func InitializeVault() {
-	client, err := vaultclient.NewClient(&vaultclient.Config{
-		Address: env.VAULT_ADDRESS,
-	})
-	if err != nil {
-		log.Fatalf("Error initializing Vault client: %s", err)
+func InitializeVault(opts VaultOptions) {
+	vaultAddress := os.Getenv("VAULT_ADDRESS")
+	vaultToken := os.Getenv("VAULT_TOKEN")
+
+	if opts.DefaultToEnv {
+		LoadEnvars()
+		return
 	}
 
-	vaultToken := env.VAULT_TOKEN
-	client.SetToken(vaultToken)
+	client, err := vaultclient.NewClient(&vaultclient.Config{
+		Address: vaultAddress,
+	})
+	if err != nil {
+		utils.LogError("InitializeVault", "Error initializing Vault client: %s.", err)
+		LoadEnvars()
+		return
+	}
 
+	resp, err := client.Sys().Health()
+	if err != nil {
+		utils.LogError("InitializeVault", "Error checking Vault health: %s. Falling back to .env variables.", err)
+		LoadEnvars()
+		return
+	}
+
+	if resp != nil && resp.Sealed {
+		log.Println("Vault is sealed. Cannot proceed with fetching secrets.")
+		LoadEnvars()
+		return
+	}
+
+	if resp != nil && resp.Initialized && resp.Standby {
+		log.Printf("Vault server is reachable but potentially has access issues.")
+		LoadEnvars()
+		return
+	}
+
+	client.SetToken(vaultToken)
 	path := "pickside/data/credentials"
 
 	secret, err := client.Logical().Read(path)
@@ -41,5 +71,18 @@ func InitializeVault() {
 
 	slog.Info("Connected to Vault", "success", true)
 
-	Envars = data
+	env.DSN = data["DSN"].(string)
+	env.TOKEN_SECRET = data["TOKEN_SECRET"].(string)
+}
+
+func LoadEnvars() {
+	err := godotenv.Load()
+	if err != nil {
+		os.Exit(0)
+	}
+
+	env.DSN = os.Getenv("DSN")
+	env.TOKEN_SECRET = os.Getenv("TOKEN_SECRET")
+
+	utils.LogInfo("LoadEnvars", "Loaded environment variables from .env file.", nil)
 }
