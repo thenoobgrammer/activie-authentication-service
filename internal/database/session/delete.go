@@ -7,9 +7,11 @@ import (
 )
 
 func DeleteFromUserId(userID string) bool {
+	const FUNC_NAME = "DeleteFromUserId"
+
 	uint64UserID, err := utils.StringToUint64(userID)
 	if err != nil {
-		utils.LogError("DeleteSession", constants.ERROR_DURING_CONVERSION, err)
+		utils.LogError(FUNC_NAME, constants.ERROR_DURING_CONVERSION, err)
 		return false
 	}
 
@@ -17,13 +19,13 @@ func DeleteFromUserId(userID string) bool {
 
 	result, err := database.GetClient().Exec(query, uint64UserID)
 	if err != nil {
-		utils.LogError("DeleteSession", constants.ERROR_DURING_DELETE, err)
+		utils.LogError(FUNC_NAME, constants.ERROR_DURING_DELETE, err)
 		return false
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected <= 0 {
-		utils.LogWarn("DeleteSession", constants.WARNING_NO_ROWS_AFFECTED, nil)
+		utils.LogWarn(FUNC_NAME, constants.WARNING_NO_ROWS_AFFECTED, nil)
 		return false
 	}
 
@@ -31,34 +33,38 @@ func DeleteFromUserId(userID string) bool {
 }
 
 func DeleteFromToken(token string) bool {
+	const FUNC_NAME = "DeleteFromToken"
+
 	query := `DELETE FROM user_sessions WHERE token = ?`
 
 	result, err := database.GetClient().Exec(query, token)
 	if err != nil {
-		utils.LogError("DeleteSession", constants.ERROR_DURING_DELETE, err)
+		utils.LogError(FUNC_NAME, constants.ERROR_DURING_DELETE, err)
 		return false
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected <= 0 {
-		utils.LogWarn("DeleteSession", constants.WARNING_NO_ROWS_AFFECTED, nil)
+		utils.LogWarn(FUNC_NAME, constants.WARNING_NO_ROWS_AFFECTED, nil)
 		return false
 	}
 	return true
 }
 
 func DeleteFromId(sessionId string) bool {
+	const FUNC_NAME = "DeleteFromId"
+
 	query := `DELETE FROM user_sessions WHERE id = ?`
 
 	result, err := database.GetClient().Exec(query, sessionId)
 	if err != nil {
-		utils.LogError("DeleteSession", constants.ERROR_DURING_DELETE, err)
+		utils.LogError(FUNC_NAME, constants.ERROR_DURING_DELETE, err)
 		return false
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected <= 0 {
-		utils.LogWarn("DeleteSession", constants.WARNING_NO_ROWS_AFFECTED, nil)
+		utils.LogWarn(FUNC_NAME, constants.WARNING_NO_ROWS_AFFECTED, nil)
 		return false
 	}
 	return true

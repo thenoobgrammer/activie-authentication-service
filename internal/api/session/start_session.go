@@ -22,9 +22,11 @@ func StartSession(g *gin.Context) {
 	key := env.TOKEN_SECRET
 
 	token := utils.GenerateToken(utils.UserClaims{
-		AccountType: req.AccountType,
-		Email:       req.UserEmail,
-		UserID:      req.UserId,
+		AccountType:     req.AccountType,
+		Email:           req.UserEmail,
+		UserID:          req.UserId,
+		UserPermissions: req.UserPermissions,
+		UserRole:        req.UserRole,
 	}, []byte(key))
 	if token == nil {
 		api.HandleError(g, api.FailedToGenerateBearerToken())

@@ -7,9 +7,11 @@ import (
 )
 
 type UserClaims struct {
-	AccountType string `json:"accountType" validate:"required"`
-	Email       string `json:"email" validate:"required"`
-	UserID      string `json:"userId" validate:"required"`
+	AccountType     string `json:"accountType" validate:"required"`
+	Email           string `json:"email" validate:"required"`
+	UserID          string `json:"userId" validate:"required"`
+	UserPermissions string `json:"userPermissions" validate:"required"`
+	UserRole        string `json:"userRole" validate:"required"`
 }
 
 func GetClaims(tokenString string, secretKey []byte) *UserClaims {
@@ -22,9 +24,11 @@ func GetClaims(tokenString string, secretKey []byte) *UserClaims {
 
 	claims := token.Claims.(jwt.MapClaims)
 	return &UserClaims{
-		AccountType: claims["accounType"].(string),
-		Email:       claims["email"].(string),
-		UserID:      claims["userId"].(string),
+		AccountType:     claims["accounType"].(string),
+		Email:           claims["email"].(string),
+		UserID:          claims["userId"].(string),
+		UserPermissions: claims["userPermissions"].(string),
+		UserRole:        claims["userRole"].(string),
 	}
 }
 func GenerateToken(claims UserClaims, secretKey []byte) *string {

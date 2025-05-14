@@ -15,9 +15,11 @@ var (
 )
 
 func Create(req models.SessionRequirements, token string) *string {
+	const FUNC_NAME = "CreateSession"
+
 	sessionID := uuid.New().String()
 
-	query := `INSERT INTO user_sessions (id, account_type, email, exp, last_ip, token, user_id) VALUES (?,?,?,?,?,?,?)`
+	query := `INSERT INTO user_sessions (id, account_type, email, exp, last_ip, token, user_id, user_permissions, user_role) VALUES (?,?,?,?,?,?,?,?,?)`
 
 	result, err := database.GetClient().Exec(query,
 		sessionID,
@@ -27,15 +29,17 @@ func Create(req models.SessionRequirements, token string) *string {
 		req.IP,
 		token,
 		req.UserId,
+		req.UserPermissions,
+		req.UserRole,
 	)
 	if err != nil {
-		utils.LogError("CreateSession", constants.ERROR_DURING_INSERT, err)
+		utils.LogError(FUNC_NAME, constants.ERROR_DURING_INSERT, err)
 		return nil
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		utils.LogWarn("CreateSession", constants.WARNING_NO_ROWS_AFFECTED, nil)
+		utils.LogWarn(FUNC_NAME, constants.WARNING_NO_ROWS_AFFECTED, nil)
 		return nil
 	}
 
