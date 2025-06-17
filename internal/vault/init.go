@@ -1,11 +1,12 @@
 package vault
 
 import (
-	"auth-service/pkg/env"
-	"auth-service/pkg/utils"
 	"log"
 	"log/slog"
 	"os"
+
+	"auth-service/pkg/env"
+	"auth-service/pkg/utils"
 
 	vaultclient "github.com/hashicorp/vault/api"
 	"github.com/joho/godotenv"
@@ -15,11 +16,12 @@ type VaultOptions struct {
 	DefaultToEnv bool
 }
 
-func InitializeVault(opts VaultOptions) {
+func InitializeVault() {
+	vaultEnv := os.Getenv("VAULT_ENV")
 	vaultAddress := os.Getenv("VAULT_ADDRESS")
 	vaultToken := os.Getenv("VAULT_TOKEN")
 
-	if opts.DefaultToEnv {
+	if vaultEnv == "local" {
 		LoadEnvars()
 		return
 	}

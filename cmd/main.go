@@ -1,16 +1,17 @@
 package main
 
 import (
+	"log"
+	"log/slog"
+	"os"
+	"time"
+
 	"auth-service/internal/api"
 	api_session "auth-service/internal/api/session"
 	"auth-service/internal/database"
 	"auth-service/internal/vault"
 	"auth-service/middlewares"
 	"auth-service/pkg/env"
-	"log"
-	"log/slog"
-	"os"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ func main() {
 	env.InitalizeEnvs()
 
 	// Vault initialization
-	vault.InitializeVault(vault.VaultOptions{DefaultToEnv: false})
+	vault.InitializeVault()
 
 	// DB initialization
 	database.InitializeDB(env.DSN)
