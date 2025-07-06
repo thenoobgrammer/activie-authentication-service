@@ -66,7 +66,7 @@ func InitializeVault() {
 		log.Fatal("Secret data is nil. Ensure the secret path is correct and the secret exists.")
 	}
 
-	data, ok := secret.Data["data"].(map[string]interface{})
+	data, ok := secret.Data["data"].(map[string]any)
 	if !ok {
 		log.Fatal("Secret structure is not as expected. Unable to find 'data' map.")
 	}

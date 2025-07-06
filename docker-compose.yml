@@ -1,9 +1,9 @@
 networks:
-  pickside-network:
+  activie-network:
     external: true
 
 services:
-  authsvc: 
+  authsvc:
     build: .
     image: authsvc:latest
     container_name: authsvc
@@ -11,7 +11,7 @@ services:
     ports:
       - "8081:8081"
     networks:
-      - pickside-network
+      - activie-network
     environment:
       - DSN=${DSN}
       - TOKEN_SECRET=${TOKEN_SECRET}
