@@ -15,7 +15,7 @@ func DeleteFromUserId(userID string) bool {
 		return false
 	}
 
-	query := `DELETE FROM user_sessions WHERE user_id = ?`
+	query := `DELETE FROM user_sessions WHERE user_id = $1`
 
 	result, err := database.GetClient().Exec(query, uint64UserID)
 	if err != nil {
@@ -35,7 +35,7 @@ func DeleteFromUserId(userID string) bool {
 func DeleteFromToken(token string) bool {
 	const FUNC_NAME = "DeleteFromToken"
 
-	query := `DELETE FROM user_sessions WHERE token = ?`
+	query := `DELETE FROM user_sessions WHERE token = $1`
 
 	result, err := database.GetClient().Exec(query, token)
 	if err != nil {
@@ -54,7 +54,7 @@ func DeleteFromToken(token string) bool {
 func DeleteFromId(sessionId string) bool {
 	const FUNC_NAME = "DeleteFromId"
 
-	query := `DELETE FROM user_sessions WHERE id = ?`
+	query := `DELETE FROM user_sessions WHERE id = $1`
 
 	result, err := database.GetClient().Exec(query, sessionId)
 	if err != nil {

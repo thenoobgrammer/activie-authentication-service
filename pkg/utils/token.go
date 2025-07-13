@@ -7,15 +7,14 @@ import (
 )
 
 type UserClaims struct {
-	AccountType     string `json:"accountType" validate:"required"`
-	Email           string `json:"email" validate:"required"`
-	UserID          string `json:"userId" validate:"required"`
-	UserPermissions string `json:"userPermissions" validate:"required"`
-	UserRole        string `json:"userRole" validate:"required"`
+	AccountType string   `json:"accountType" validate:"required"`
+	Email       string   `json:"email" validate:"required"`
+	UserID      string   `json:"userId" validate:"required"`
+	UserRoles   []string `json:"userRoles" validate:"required"`
 }
 
 func GetClaims(tokenString string, secretKey []byte) *UserClaims {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return secretKey, nil
 	})
 	if err != nil {
@@ -24,11 +23,10 @@ func GetClaims(tokenString string, secretKey []byte) *UserClaims {
 
 	claims := token.Claims.(jwt.MapClaims)
 	return &UserClaims{
-		AccountType:     claims["accounType"].(string),
-		Email:           claims["email"].(string),
-		UserID:          claims["userId"].(string),
-		UserPermissions: claims["userPermissions"].(string),
-		UserRole:        claims["userRole"].(string),
+		AccountType: claims["accounType"].(string),
+		Email:       claims["email"].(string),
+		UserID:      claims["userId"].(string),
+		UserRoles:   claims["userRoles"].([]string),
 	}
 }
 func GenerateToken(claims UserClaims, secretKey []byte) *string {

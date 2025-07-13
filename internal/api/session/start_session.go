@@ -9,12 +9,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kr/pretty"
 )
 
 func StartSession(g *gin.Context) {
 	var req models.SessionRequirements
 
 	if err := g.ShouldBindJSON(&req); err != nil {
+		pretty.Println("HERE", req)
 		api.HandleError(g, api.InvalidJSON())
 		return
 	}
@@ -22,11 +24,10 @@ func StartSession(g *gin.Context) {
 	key := env.TOKEN_SECRET
 
 	token := utils.GenerateToken(utils.UserClaims{
-		AccountType:     req.AccountType,
-		Email:           req.UserEmail,
-		UserID:          req.UserId,
-		UserPermissions: req.UserPermissions,
-		UserRole:        req.UserRole,
+		AccountType: req.AccountType,
+		Email:       req.UserEmail,
+		UserID:      req.UserId,
+		UserRoles:   req.UserRoles,
 	}, []byte(key))
 	if token == nil {
 		api.HandleError(g, api.FailedToGenerateBearerToken())

@@ -10,7 +10,7 @@ import (
 func Retrieve(sessionId string) *models.Session {
 	const FUNC_NAME = "Retrieve"
 
-	query := `SELECT * FROM user_sessions WHERE id = ?`
+	query := `SELECT * FROM user_sessions WHERE id = $1`
 
 	var session models.Session
 
@@ -24,8 +24,7 @@ func Retrieve(sessionId string) *models.Session {
 		&session.StartTime,
 		&session.Token,
 		&session.UserID,
-		&session.UserPermissions,
-		&session.UserRole,
+		&session.UserRoles,
 	); err != nil {
 		utils.LogError(FUNC_NAME, constants.ERROR_DURING_ROW_SCAN, err)
 		return nil
@@ -37,7 +36,7 @@ func Retrieve(sessionId string) *models.Session {
 func RetrieveFromToken(token string) *models.Session {
 	const FUNC_NAME = "RetrieveFromToken"
 
-	query := `SELECT * FROM user_sessions WHERE token = ?`
+	query := `SELECT * FROM user_sessions WHERE token = $1`
 
 	var session models.Session
 
@@ -51,8 +50,7 @@ func RetrieveFromToken(token string) *models.Session {
 		&session.StartTime,
 		&session.Token,
 		&session.UserID,
-		&session.UserPermissions,
-		&session.UserRole,
+		&session.UserRoles,
 	); err != nil {
 		utils.LogError(FUNC_NAME, constants.ERROR_DURING_ROW_SCAN, err)
 		return nil

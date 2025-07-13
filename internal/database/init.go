@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 func InitializeDB(dsn string) {
 	once.Do(func() {
 		var err error
-		client, err = sql.Open("mysql", dsn)
+		client, err = sql.Open("postgres", dsn)
 		if err != nil {
 			log.Fatalf("Error opening database: %v", err)
 		}
