@@ -9,14 +9,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kr/pretty"
 )
 
 func StartSession(g *gin.Context) {
 	var req models.SessionRequirements
 
 	if err := g.ShouldBindJSON(&req); err != nil {
-		pretty.Println("HERE", req)
 		api.HandleError(g, api.InvalidJSON())
 		return
 	}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 var (
@@ -20,7 +21,6 @@ func Create(req models.SessionRequirements, token string) *string {
 	sessionID := uuid.New().String()
 
 	query := `INSERT INTO user_sessions (id, account_type, email, exp, last_ip, token, user_id, user_roles) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`
-
 	result, err := database.GetClient().Exec(query,
 		sessionID,
 		req.AccountType,
@@ -29,7 +29,7 @@ func Create(req models.SessionRequirements, token string) *string {
 		req.IP,
 		token,
 		req.UserId,
-		req.UserRoles,
+		pq.Array(req.UserRoles),
 	)
 	if err != nil {
 		utils.LogError(FUNC_NAME, constants.ERROR_DURING_INSERT, err)
