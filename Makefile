@@ -1,3 +1,6 @@
+include .env
+export
+
 run: build
 	@./bin/authentication-service
 
