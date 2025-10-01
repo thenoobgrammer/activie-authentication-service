@@ -1,66 +1,82 @@
 package main
 
 import (
+	"auth-service/internal/health"
+	"auth-service/internal/infra/database"
+	"auth-service/internal/infra/vault"
+	"auth-service/internal/session"
+	"auth-service/pkg/logs"
+	"context"
 	"log"
-	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	"auth-service/internal/api"
-	api_session "auth-service/internal/api/session"
-	"auth-service/internal/database"
-	"auth-service/internal/vault"
-	"auth-service/middlewares"
 	"auth-service/pkg/env"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-	// Env intialization
 	env.InitalizeEnvs()
-
-	// Vault initialization
 	vault.InitializeVault()
-
-	// DB initialization
 	database.InitializeDB(env.DSN)
-	defer database.Close()
 
-	// Loggin initialization
-	logHandler := slog.NewJSONHandler(os.Stdout,
-		&slog.HandlerOptions{Level: slog.LevelDebug}).WithAttrs([]slog.Attr{slog.String("service", "authentication")})
-	logger := slog.New(logHandler)
-	slog.SetDefault(logger)
-	slog.Info("service started")
+	gin.SetMode(env.GIN_MODE)
+	engine := gin.Default()
 
-	gin.SetMode(os.Getenv("GIN_MODE"))
-	g := gin.Default()
-	g.Use(cors.New(buildCors()))
-	g.Use(middlewares.RequestMetricsMiddleware())
+	setupServer(engine)
+	printServiceInformation()
 
-	g.GET("/health", api.GetHealth)
+	srv := http.Server(http.Server{
+		Addr:    ":8081",
+		Handler: engine,
+	})
 
-	g.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	// Sessions
-	g.GET("/sessions", api_session.GetSession)
-	g.POST("/sessions/start", api_session.StartSession)
-	g.DELETE("/sessions/end", api_session.EndSession)
+	go func() { srv.ListenAndServe() }()
 
-	PrintServiceInformation()
+	<-quit
 
-	if err := g.Run(":8081"); err != nil {
-		log.Fatalf("Failed to run server: %v", err)
+	cleanUpServices()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("server forced to shutdown:", err)
 	}
 }
 
-func PrintServiceInformation() {
-	log.Printf("Mode %s", env.GIN_MODE)
-	log.Printf("Service name: %s", env.SERVICE_NAME)
-	log.Printf("Version: %s", env.VERSION)
+func printServiceInformation() {
+	logs.Info("Mode: ", env.GIN_MODE)
+	logs.Info("Service name: ", env.SERVICE_NAME)
+	logs.Info("Version: ", env.VERSION)
+}
+
+func setupServer(engine *gin.Engine) {
+	db := database.GetClient()
+	if db == nil {
+		panic("database connection failed")
+	}
+
+	engine.Use(cors.New(buildCors()))
+	engine.OPTIONS("/*path", func(c *gin.Context) {
+		c.Status(204)
+	})
+
+	api := engine.Group("/")
+
+	session.AttachHandlers(api, db)
+	health.AttachHandlers(api)
+}
+
+func cleanUpServices() {
+	database.Close()
 }
 
 func buildCors() cors.Config {

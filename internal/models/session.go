@@ -1,24 +1,23 @@
 package models
 
-import "github.com/lib/pq"
-
-type Session struct {
-	ID          string         `json:"id"`
-	AccountType string         `json:"accountType"`
-	DeviceType  *string        `json:"deviceType"`
-	Expiration  string         `json:"exp"`
-	LastIP      string         `json:"lastIp"`
-	StartTime   string         `json:"start"`
-	Token       string         `json:"token"`
-	UserEmail   string         `json:"userEmail"`
-	UserID      string         `json:"userId"`
-	UserRoles   pq.StringArray `json:"userRoles"`
+type UserSession struct {
+	SessionID  string `json:"sessionId"`
+	UserID     string `json:"userId"`
+	Jti        string `json:"jti"`
+	StartTime  string `json:"start"`
+	Expiration string `json:"exp"`
+	LastIP     string `json:"lastIp"`
+	DeviceType string `json:"deviceType"`
+	IsActive   bool   `json:"isActive"`
 }
 
-type SessionRequirements struct {
-	AccountType string         `json:"accountType"`
-	IP          string         `json:"ip"`
-	UserEmail   string         `json:"userEmail"`
-	UserId      string         `json:"userId"`
-	UserRoles   pq.StringArray `json:"userRoles"`
+type AnonymousSession struct {
+	SessionID  string `json:"sessionId"`
+	ClientID   string `json:"clientId"`
+	Jti        string `json:"jti"`
+	StartTime  string `json:"start"`
+	Expiration string `json:"exp"`
+	LastIP     string `json:"lastIp"`
+	DeviceType string `json:"deviceType"`
+	IsActive   bool   `json:"isActive"`
 }
