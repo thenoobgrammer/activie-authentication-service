@@ -3,6 +3,7 @@ package session
 import (
 	"auth-service/pkg/api"
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,72 +16,89 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) StartSession(g *gin.Context) {
-	var params NewSessionParams
-
-	if err := g.ShouldBindJSON(&params); err != nil {
-		api.HandleError(g, api.InvalidJSON())
-		return
-	}
-
-	activeSession, token, err := h.service.StartAuthenticatedSession(params)
-	if err != nil || activeSession == nil || token == nil {
-		api.HandleError(g, api.FailedToCreateSession())
-		return
-	}
-
-	api.HandleSuccess(g, http.StatusOK, *token)
-}
-
-func (h *Handler) StartAnonymousSession(c *gin.Context) {
-	var params AnonymousNewSessionParams
+func (h *Handler) IssueToken(c *gin.Context) {
+	var params ClaimRequirementsParams
 
 	if err := c.ShouldBindJSON(&params); err != nil {
-		api.HandleError(c, api.InvalidJSON())
+		api.AuthServiceReponse(c, http.StatusBadRequest, "invalid.token.params")
 		return
 	}
 
-	params.ClientID = c.GetHeader("X-Client-ID")
-	params.IP = c.Request.RemoteAddr
-
-	anonymousSession, token, err := h.service.StartAnonymousSession(params)
-	if err != nil || anonymousSession == nil || token == nil {
-		api.HandleError(c, api.FailedToCreateSession())
+	token, err := h.service.GetTokenAndStartSession(params)
+	if err != nil || token == nil {
+		api.AuthServiceReponse(c, http.StatusInternalServerError, "failed.to.create.session")
 		return
 	}
 
-	api.HandleSuccess(c, http.StatusOK, *token)
+	api.AuthServiceReponse(c, http.StatusOK, *token)
 }
 
-// 9#z95W7ho5uoGjcN
-func (h *Handler) GetActiveSession(c *gin.Context) {
-	token := c.Query("token")
-	if token == "" {
-		api.HandleError(c, api.InvalidBearer())
+func (h *Handler) ValidateToken(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
+		return
+	}
+	match := regexp.MustCompile(`^Bearer\s(.+)$`).FindStringSubmatch(authHeader)
+	if len(match) != 2 {
+		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
 		return
 	}
 
-	session := h.service.GetActiveSession(token)
-	if session == nil {
-		api.HandleError(c, api.SessionNotFound())
+	tokenStr := match[1]
+
+	if err := h.service.ValidateToken(tokenStr); err != nil {
+		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
 		return
 	}
 
-	api.HandleSuccess(c, http.StatusOK, session)
+	api.AuthServiceReponse(c, http.StatusOK, true)
 }
 
-func (h *Handler) EndActiveSession(c *gin.Context) {
-	token := c.Query("token")
-	if token == "" {
-		api.HandleError(c, api.InvalidBearer())
+func (h *Handler) InvalidateToken(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
+		return
+	}
+	match := regexp.MustCompile(`^Bearer\s(.+)$`).FindStringSubmatch(authHeader)
+	if len(match) != 2 {
+		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
 		return
 	}
 
-	ok := h.service.EndActiveSession(token)
-	if !ok {
-		api.HandleError(c, api.FailedToDeleteSession())
+	tokenStr := match[1]
+
+	if err := h.service.InvalidateToken(tokenStr); err != nil {
+		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
 		return
 	}
 
-	api.HandleSuccess(c, http.StatusOK, true)
+	api.AuthServiceReponse(c, http.StatusOK, true)
+}
+
+func (h *Handler) RefreshToken(c *gin.Context) {
+	var params RefreshTokenParams
+	if err := c.ShouldBindJSON(&params); err != nil {
+		api.AuthServiceReponse(c, http.StatusBadRequest, "invalid.refresh.token")
+		return
+	}
+
+	token, err := h.service.RefreshToken(params.RefreshToken)
+	if err != nil {
+		api.AuthServiceReponse(c, http.StatusInternalServerError, "failed.to.refresh.token")
+		return
+	}
+
+	api.AuthServiceReponse(c, http.StatusOK, token)
+}
+
+func (h *Handler) InitiateAnonymousSession(c *gin.Context) {
+	token, err := h.service.CreateAnonymousSession()
+	if err != nil {
+		api.AuthServiceReponse(c, http.StatusInternalServerError, "failed.to.initiate.anonymous.token")
+		return
+	}
+
+	api.AuthServiceReponse(c, http.StatusOK, token)
 }

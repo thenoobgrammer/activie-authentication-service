@@ -1,12 +1,12 @@
 package vault
 
 import (
+	"auth-service/pkg/logs"
 	"log"
 	"log/slog"
 	"os"
 
 	"auth-service/pkg/env"
-	"auth-service/pkg/utils"
 
 	vaultclient "github.com/hashicorp/vault/api"
 	"github.com/joho/godotenv"
@@ -30,14 +30,14 @@ func InitializeVault() {
 		Address: vaultAddress,
 	})
 	if err != nil {
-		utils.LogError("InitializeVault", "Error initializing Vault client: %s.", err)
+		logs.Error("InitializeVault", "Error initializing Vault client: %s.", err)
 		LoadEnvars()
 		return
 	}
 
 	resp, err := client.Sys().Health()
 	if err != nil {
-		utils.LogError("InitializeVault", "Error checking Vault health: %s. Falling back to .env variables.", err)
+		logs.Error("InitializeVault", "Error checking Vault health: %s. Falling back to .env variables.", err)
 		LoadEnvars()
 		return
 	}
@@ -86,5 +86,5 @@ func LoadEnvars() {
 	env.DSN = os.Getenv("DSN")
 	env.TOKEN_SECRET = os.Getenv("TOKEN_SECRET")
 
-	utils.LogInfo("LoadEnvars", "Loaded environment variables from .env file.", nil)
+	logs.Info("LoadEnvars", "Loaded environment variables from .env file.", nil)
 }

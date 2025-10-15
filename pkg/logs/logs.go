@@ -51,7 +51,7 @@ func init() {
 		}
 	}
 
-	logger = zerolog.New(cw).With().Timestamp().Str("service", "activie-core").Logger()
+	logger = zerolog.New(cw).With().Timestamp().Str("service", "activie-auth-service").Logger()
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 }
 

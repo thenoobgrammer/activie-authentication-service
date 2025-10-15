@@ -3,6 +3,7 @@ package main
 import (
 	"auth-service/internal/health"
 	"auth-service/internal/infra/database"
+	"auth-service/internal/infra/redis"
 	"auth-service/internal/infra/vault"
 	"auth-service/internal/session"
 	"auth-service/pkg/logs"
@@ -23,13 +24,14 @@ import (
 func main() {
 	env.InitalizeEnvs()
 	vault.InitializeVault()
+	redis.InitializeRedis()
 	database.InitializeDB(env.DSN)
 
 	gin.SetMode(env.GIN_MODE)
 	engine := gin.Default()
 
 	setupServer(engine)
-	printServiceInformation()
+	//printServiceInformation()
 
 	srv := http.Server(http.Server{
 		Addr:    ":8081",

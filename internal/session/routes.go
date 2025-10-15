@@ -1,6 +1,8 @@
 package session
 
 import (
+	"auth-service/internal/token"
+	"auth-service/internal/user"
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
@@ -8,10 +10,14 @@ import (
 
 func AttachHandlers(rg *gin.RouterGroup, db *sql.DB) {
 	repo := NewRepository(db)
-	service := NewService(repo)
+	userRepo := user.NewRepository(db)
+	tokenRepo := token.NewRepository(db)
+	service := NewService(repo, userRepo, tokenRepo)
 	handler := NewHandler(service)
 
-	rg.GET("/sessions", handler.GetActiveSession)
-	rg.POST("/sessions/start", handler.StartSession)
-	rg.DELETE("/sessions/end", handler.EndActiveSession)
+	rg.POST("/token", handler.IssueToken)
+	rg.POST("/token/validate", handler.ValidateToken)
+	rg.POST("/token/invalidate", handler.InvalidateToken)
+	rg.POST("/token/refresh", handler.RefreshToken)
+	rg.POST("/anonymous/session", handler.InitiateAnonymousSession)
 }

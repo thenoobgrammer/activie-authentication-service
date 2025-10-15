@@ -1,8 +1,10 @@
 package session
 
 import (
-	"auth-service/internal/models"
-	"errors"
+	"auth-service/internal/infra/redis"
+	"auth-service/internal/token"
+	"auth-service/internal/user"
+	"auth-service/pkg/logs"
 	"fmt"
 	"time"
 
@@ -10,109 +12,183 @@ import (
 )
 
 type Service interface {
-	StartAuthenticatedSession(params SessionInfoParams) (*string, error)
-	StartAnonymousSession(params AnonymousSessionInfoParams) (*string, error)
-	GetActiveUserSession(sessionId string) *models.UserSession
-	GetActiveAnonymousSession(sessionId string) *models.AnonymousSession
-	EndActiveUserSession(sessionId string) bool
-	EndActiveAnonymousSession(sessionId string) bool
+	GetTokenAndStartSession(params ClaimRequirementsParams) (*token.Token, error)
+	RefreshToken(refreshTokenStr string) (*token.Token, error)
+	ValidateToken(tokenStr string) error
+	InvalidateToken(tokenStr string) error
+	CreateAnonymousSession() (*token.AnonymousToken, error)
 }
 
 type service struct {
-	repo Repository
+	repo      Repository
+	userRepo  user.Repository
+	tokenRepo token.Repository
 }
 
-func NewService(repo Repository) Service {
+func NewService(repo Repository, userRepo user.Repository, tokenRepo token.Repository) Service {
 	return &service{
-		repo: repo,
+		repo:      repo,
+		userRepo:  userRepo,
+		tokenRepo: tokenRepo,
 	}
 }
 
-func (s *service) StartAuthenticatedSession(params SessionInfoParams) (*string, error) {
-	if params.UserID == "" {
-		return nil, errors.New("userId.is.missing")
-	}
-
-	claims := NewUserClaims(UserClaimInfoParams{
+func (s *service) GetTokenAndStartSession(params ClaimRequirementsParams) (*token.Token, error) {
+	claims := NewClaims(ClaimsParams{
 		UserID:    params.UserID,
 		UserRoles: params.UserRoles,
+		ClientID:  params.ClientID,
+		Email:     params.Email,
 	})
 
-	token := GenerateToken(claims)
-	if token == nil {
-		return nil, fmt.Errorf("failed.to.generate.token")
+	accessToken, err := GenerateJWT(claims)
+	if err != nil {
+		logs.Error("StartSession", "failed.to.generate.token", err)
+		return nil, fmt.Errorf("failed.to.generate.token: %w", err)
 	}
 
-	ok := s.repo.DeleteUserSessionFromUserId(params.UserID)
-	if !ok {
-		return nil, fmt.Errorf("failed.to.delete.previous.session")
+	refreshToken, err := GenerateOpaqueToken()
+	if err != nil {
+		logs.Error("StartSession", "failed.to.generate.refresh.token", err)
+		return nil, fmt.Errorf("failed.to.generate.refresh.token: %w", err)
 	}
 
-	sessionId := s.repo.CreateUserSession(SesssionParams{
+	if err := s.repo.CreateSession(NewSessionParams{
 		SessionID:  uuid.New().String(),
-		UserID:     params.UserID,
+		ClientID:   claims.ClientID,
+		UserID:     claims.UserID,
 		TokenJTI:   claims.ID,
 		LastIP:     params.LastIP,
 		DeviceType: params.DeviceType,
 		StartTime:  time.Now(),
 		Exp:        claims.ExpiresAt.Time,
 		IsActive:   true,
+	}); err != nil {
+		return nil, fmt.Errorf("failed.to.add.session")
+	}
+
+	ok, err := s.tokenRepo.RevokeUserRefreshTokens(claims.UserID)
+	if err != nil || !ok {
+		logs.Error("", "failed.to.revoke.token", err)
+		return nil, fmt.Errorf("failed.to.revoke.token")
+	}
+
+	if err := s.tokenRepo.AddRefreshToken(token.NewRefreshTokenRecordParams{
+		UserID:    &claims.UserID,
+		ClientID:  &claims.ClientID,
+		TokenHash: refreshToken,
+	}); err != nil {
+		if err := s.repo.DeleteSessionByJTI(claims.ID); err != nil {
+			logs.Error("", "failed.to.delete.session", err)
+			return nil, fmt.Errorf("failed.to.delete.session")
+		}
+		logs.Error("", "failed.to.add.refresh.token", err)
+		return nil, fmt.Errorf("failed.to.add.refresh.token")
+	}
+
+	return &token.Token{
+		AccessToken:  *accessToken,
+		RefreshToken: refreshToken,
+		TokenType:    "bearer",
+		ExpiresIn:    int(claims.ExpiresAt.Time.Sub(time.Now()).Seconds()),
+	}, nil
+}
+
+func (s *service) CreateAnonymousSession() (*token.AnonymousToken, error) {
+	session, err := s.repo.CreateAnonymousSession(time.Now().Add(time.Hour * 24))
+	if err != nil {
+		logs.Error("", "failed.to.create.anon.session", err)
+		return nil, fmt.Errorf("failed.to.create.anon.session")
+	}
+
+	return &token.AnonymousToken{
+		SessionID: session.SessionID,
+		ExpiresIn: int(session.ExpiresAt.Sub(time.Now()).Seconds()),
+	}, nil
+}
+
+func (s *service) RefreshToken(tokenStr string) (*token.Token, error) {
+	// 1. revoke token in db and get it back
+	refreshToken, err := s.tokenRepo.RevokeRefreshToken(tokenStr)
+	if err != nil || !refreshToken.IsRevoked {
+		logs.Error("RefreshToken", "failed.to.revoke.token", err)
+		return nil, fmt.Errorf("failed.to.revoke.token")
+	}
+
+	user, err := s.userRepo.PeekUserById(*refreshToken.UserID)
+	if err != nil {
+		logs.Error("RefreshToken", "failed.to.peek.user", err)
+		return nil, fmt.Errorf("failed.to.peek.user")
+	}
+
+	// 2. generate new access_token
+	claims := NewClaims(ClaimsParams{
+		UserID:    user.ID,
+		UserRoles: *user.SystemRoles,
+		ClientID:  *refreshToken.ClientID,
+		Email:     user.Email,
 	})
-	if sessionId == nil {
-		return nil, fmt.Errorf("failed.to.create.session")
+
+	accessToken, err := GenerateJWT(claims)
+	if err != nil {
+		logs.Error("StartSession", "failed.to.generate.token", err)
+		return nil, fmt.Errorf("failed.to.generate.token: %w", err)
 	}
 
-	activeSession := s.repo.GetUserSessionFromId(*sessionId)
-	if activeSession == nil {
-		return nil, fmt.Errorf("failed.to.retreive.active.session")
+	newRefreshToken, err := GenerateOpaqueToken()
+	if err != nil {
+		logs.Error("StartSession", "failed.to.generate.refresh.token", err)
+		return nil, fmt.Errorf("failed.to.generate.refresh.token: %w", err)
 	}
 
-	return token, nil
-}
-
-func (s *service) StartAnonymousSession(params AnonymousSessionInfoParams) (*string, error) {
-	if params.ClientID == "" {
-		return nil, errors.New("clientId.is.missing")
+	if err := s.tokenRepo.AddRefreshToken(token.NewRefreshTokenRecordParams{
+		UserID:    &claims.UserID,
+		ClientID:  &claims.ClientID,
+		TokenHash: newRefreshToken,
+	}); err != nil {
+		if err := s.repo.DeleteSessionByJTI(claims.ID); err != nil {
+			logs.Error("", "failed.to.delete.session", err)
+			return nil, fmt.Errorf("failed.to.delete.session")
+		}
+		logs.Error("", "failed.to.add.refresh.token", err)
+		return nil, fmt.Errorf("failed.to.add.refresh.token")
 	}
 
-	claims := NewAnonymousClaims(AnonymousClaimInfoParams{
-		ClientID: params.ClientID,
-	})
+	return &token.Token{
+		AccessToken:  *accessToken,
+		RefreshToken: newRefreshToken,
+		TokenType:    "bearer",
+		ExpiresIn:    int(claims.ExpiresAt.Time.Sub(time.Now()).Seconds()),
+	}, nil
+}
 
-	token, err := GenerateAnonymousToken(claims)
-	if token == nil || err != nil {
-		return nil, fmt.Errorf("failed.to.generate.token")
+func (s *service) InvalidateToken(tokenStr string) error {
+	claims, err := ExtractClaims(tokenStr) // already validates the claims
+	if err != nil {
+		return fmt.Errorf("invalid.token")
 	}
 
-	sessionId := s.repo.CreateAnonymousSession(AnonymousSessionParams{
-		SessionID:  uuid.New().String(),
-		ClientID:   params.ClientID,
-		TokenJTI:   claims.ID,
-		LastIP:     params.LastIP,
-		DeviceType: params.DeviceType,
-		StartTime:  time.Now(),
-		Exp:        claims.ExpiresAt.Time,
-		IsActive:   true,
-	})
-	if sessionId == nil {
-		return nil, fmt.Errorf("failed.to.create.anonymous.session")
+	if err := redis.Set("jti-blocklist", claims.ID, claims.ExpiresAt.Time.Sub(time.Now())); err != nil {
+		return fmt.Errorf("failed.to.invalidate.token")
 	}
 
-	return token, nil
+	if err := s.repo.DeactivateSession(claims.ID); err != nil {
+		return fmt.Errorf("cannot.deactivate.session")
+	}
+
+	return nil
 }
 
-func (s *service) GetActiveUserSession(sessionId string) *models.UserSession {
-	return s.repo.GetUserSessionFromId(sessionId)
-}
+func (s *service) ValidateToken(tokenStr string) error {
+	claims, err := ExtractClaims(tokenStr) // already validates the claims
+	if err != nil {
+		return fmt.Errorf("invalid.token")
+	}
 
-func (s *service) GetActiveAnonymousSession(sessionId string) *models.AnonymousSession {
-	return s.repo.GetAnonymousSessionFromId(sessionId)
-}
+	val, err := redis.GetString("jti-blocklist:" + claims.ID)
+	if err == nil && val != "" {
+		return fmt.Errorf("token is blocked")
+	}
 
-func (s *service) EndActiveUserSession(sessionId string) bool {
-	return s.repo.DeleteUserSessionFromId(sessionId)
-}
-
-func (s *service) EndActiveAnonymousSession(sessionId string) bool {
-	return s.repo.DeleteAnonymousSessionFromId(sessionId)
+	return nil
 }
