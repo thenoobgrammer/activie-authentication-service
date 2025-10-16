@@ -36,6 +36,10 @@ func FailedToCreateSession() APIError {
 	return NewAPIError(http.StatusInternalServerError, fmt.Errorf("failed to create session"))
 }
 
+func FailedToDeleteSession() APIError {
+	return NewAPIError(http.StatusInternalServerError, fmt.Errorf("failed.to.delete.session"))
+}
+
 func InvalidJSON() APIError {
 	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid JSON request data"))
 }

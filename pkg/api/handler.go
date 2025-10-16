@@ -1,7 +1,7 @@
 package api
 
 import (
-	"auth-service/pkg/utils"
+	"auth-service/pkg/logs"
 	"fmt"
 	"net/http"
 
@@ -13,11 +13,11 @@ func HandleError(g *gin.Context, err error) {
 	case APIError:
 		g.JSON(e.StatusCode, e)
 	case InternalServerError:
-		utils.LogError(g.FullPath(), "internal server error", err)
+		logs.Error(g.FullPath(), "internal server error", err)
 		apiErr := NewAPIError(http.StatusInternalServerError, fmt.Errorf("internal server error"))
 		g.JSON(apiErr.StatusCode, apiErr)
 	default:
-		utils.LogError(g.FullPath(), "internal server error", err)
+		logs.Error(g.FullPath(), "internal server error", err)
 		apiErr := NewAPIError(http.StatusInternalServerError, fmt.Errorf("internal server error"))
 		g.JSON(apiErr.StatusCode, apiErr)
 	}
@@ -25,4 +25,8 @@ func HandleError(g *gin.Context, err error) {
 
 func HandleSuccess(g *gin.Context, statusCode int, data interface{}) {
 	g.JSON(statusCode, data)
+}
+
+func AuthServiceReponse(c *gin.Context, code int, data any) {
+	c.JSON(code, data)
 }
