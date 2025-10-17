@@ -20,6 +20,7 @@ type Token struct {
 }
 
 type AnonymousToken struct {
-	SessionID string `json:"session_id"`
-	ExpiresIn int    `json:"expires_in"`
+	AccessToken string `json:"access_token,omitempty"`
+	SessionID   string `json:"session_id"`
+	ExpiresIn   int    `json:"expires_in"`
 }

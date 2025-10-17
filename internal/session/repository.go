@@ -58,14 +58,13 @@ func (r *repo) CreateSession(params NewSessionParams) error {
 }
 
 func (r *repo) CreateAnonymousSession(expiresAt time.Time) (*AnonymousSession, error) {
-	query := `INSERT INTO anonymous_sessions (session_id, data, expires_at) VALUES ($1,$2,$3) RETURNING *`
-	args := []any{uuid.New().String(), []byte{}, expiresAt}
-	
+	query := `INSERT INTO anonymous_sessions (session_id, expires_at) VALUES ($1,$2) RETURNING *`
+	args := []any{uuid.New().String(), expiresAt}
+
 	var sess AnonymousSession
 
 	if err := database.GetClient().QueryRow(query, args...).Scan(
 		&sess.SessionID,
-		&sess.Data,
 		&sess.CreatedAt,
 		&sess.ExpiresAt,
 	); err != nil {

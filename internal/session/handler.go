@@ -93,8 +93,8 @@ func (h *Handler) RefreshToken(c *gin.Context) {
 	api.AuthServiceReponse(c, http.StatusOK, token)
 }
 
-func (h *Handler) InitiateAnonymousSession(c *gin.Context) {
-	token, err := h.service.CreateAnonymousSession()
+func (h *Handler) IssueAnonymousToken(c *gin.Context) {
+	token, err := h.service.GetAnonymousTokenAndStartSession()
 	if err != nil {
 		api.AuthServiceReponse(c, http.StatusInternalServerError, "failed.to.initiate.anonymous.token")
 		return
