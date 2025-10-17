@@ -1,7 +1,6 @@
 package session
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -18,8 +17,7 @@ type Session struct {
 }
 
 type AnonymousSession struct {
-	SessionID string          `json:"sessionId"`
-	Data      json.RawMessage `json:"data"`
-	CreatedAt string          `json:"createdAt"`
-	ExpiresAt time.Time       `json:"expiresAt"`
+	SessionID string    `json:"sessionId"`
+	CreatedAt string    `json:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }

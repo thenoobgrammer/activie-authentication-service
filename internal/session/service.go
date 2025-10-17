@@ -13,10 +13,10 @@ import (
 
 type Service interface {
 	GetTokenAndStartSession(params ClaimRequirementsParams) (*token.Token, error)
+	GetAnonymousTokenAndStartSession() (*token.AnonymousToken, error)
 	RefreshToken(refreshTokenStr string) (*token.Token, error)
 	ValidateToken(tokenStr string) error
 	InvalidateToken(tokenStr string) error
-	CreateAnonymousSession() (*token.AnonymousToken, error)
 }
 
 type service struct {
@@ -91,19 +91,30 @@ func (s *service) GetTokenAndStartSession(params ClaimRequirementsParams) (*toke
 		RefreshToken: refreshToken,
 		TokenType:    "bearer",
 		ExpiresIn:    int(claims.ExpiresAt.Time.Sub(time.Now()).Seconds()),
+		Principal:    claims.Email,
 	}, nil
 }
 
-func (s *service) CreateAnonymousSession() (*token.AnonymousToken, error) {
-	session, err := s.repo.CreateAnonymousSession(time.Now().Add(time.Hour * 24))
+func (s *service) GetAnonymousTokenAndStartSession() (*token.AnonymousToken, error) {
+	anonID := uuid.New().String()
+
+	claims := NewClaims(ClaimsParams{
+		UserID:    anonID,
+		UserRoles: []string{"anonymous"},
+		ClientID:  "",
+		Email:     "",
+	})
+
+	accessToken, err := GenerateJWT(claims)
 	if err != nil {
-		logs.Error("", "failed.to.create.anon.session", err)
-		return nil, fmt.Errorf("failed.to.create.anon.session")
+		logs.Error("GetAnonymousToken", "failed.to.generate.token", err)
+		return nil, fmt.Errorf("failed.to.generate.token: %w", err)
 	}
 
 	return &token.AnonymousToken{
-		SessionID: session.SessionID,
-		ExpiresIn: int(session.ExpiresAt.Sub(time.Now()).Seconds()),
+		AccessToken: *accessToken,
+		SessionID:   anonID,
+		ExpiresIn:   int(claims.ExpiresAt.Time.Sub(time.Now()).Seconds()),
 	}, nil
 }
 
@@ -159,6 +170,7 @@ func (s *service) RefreshToken(tokenStr string) (*token.Token, error) {
 		RefreshToken: newRefreshToken,
 		TokenType:    "bearer",
 		ExpiresIn:    int(claims.ExpiresAt.Time.Sub(time.Now()).Seconds()),
+		Principal:    claims.Email,
 	}, nil
 }
 

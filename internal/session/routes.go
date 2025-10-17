@@ -16,8 +16,8 @@ func AttachHandlers(rg *gin.RouterGroup, db *sql.DB) {
 	handler := NewHandler(service)
 
 	rg.POST("/token", handler.IssueToken)
+	rg.POST("/token/anonymous", handler.IssueAnonymousToken)
 	rg.POST("/token/validate", handler.ValidateToken)
 	rg.POST("/token/invalidate", handler.InvalidateToken)
 	rg.POST("/token/refresh", handler.RefreshToken)
-	rg.POST("/anonymous/session", handler.InitiateAnonymousSession)
 }
