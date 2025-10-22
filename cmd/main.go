@@ -3,8 +3,6 @@ package main
 import (
 	"auth-service/internal/health"
 	"auth-service/internal/infra/database"
-	"auth-service/internal/infra/redis"
-	"auth-service/internal/infra/vault"
 	"auth-service/internal/session"
 	"auth-service/pkg/logs"
 	"context"
@@ -23,20 +21,17 @@ import (
 
 func main() {
 	env.InitalizeEnvs()
-	vault.InitializeVault()
-	redis.InitializeRedis()
 	database.InitializeDB(env.DSN)
 
 	gin.SetMode(env.GIN_MODE)
 	engine := gin.Default()
 
 	setupServer(engine)
-	//printServiceInformation()
 
-	srv := http.Server(http.Server{
+	srv := http.Server{
 		Addr:    ":8081",
 		Handler: engine,
-	})
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

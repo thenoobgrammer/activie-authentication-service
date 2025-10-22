@@ -45,13 +45,6 @@ func (h *Handler) ValidateToken(c *gin.Context) {
 		return
 	}
 
-	tokenStr := match[1]
-
-	if err := h.service.ValidateToken(tokenStr); err != nil {
-		api.AuthServiceReponse(c, http.StatusUnauthorized, false)
-		return
-	}
-
 	api.AuthServiceReponse(c, http.StatusOK, true)
 }
 

@@ -14,6 +14,7 @@ var (
 )
 
 func InitializeDB(dsn string) {
+	log.Println("DSN", dsn)
 	once.Do(func() {
 		var err error
 		client, err = sql.Open("postgres", dsn)

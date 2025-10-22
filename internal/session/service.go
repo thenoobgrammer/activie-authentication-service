@@ -1,7 +1,6 @@
 package session
 
 import (
-	"auth-service/internal/infra/redis"
 	"auth-service/internal/token"
 	"auth-service/internal/user"
 	"auth-service/pkg/logs"
@@ -15,7 +14,6 @@ type Service interface {
 	GetTokenAndStartSession(params ClaimRequirementsParams) (*token.Token, error)
 	GetAnonymousTokenAndStartSession() (*token.AnonymousToken, error)
 	RefreshToken(refreshTokenStr string) (*token.Token, error)
-	ValidateToken(tokenStr string) error
 	InvalidateToken(tokenStr string) error
 }
 
@@ -180,26 +178,8 @@ func (s *service) InvalidateToken(tokenStr string) error {
 		return fmt.Errorf("invalid.token")
 	}
 
-	if err := redis.Set("jti-blocklist", claims.ID, claims.ExpiresAt.Time.Sub(time.Now())); err != nil {
-		return fmt.Errorf("failed.to.invalidate.token")
-	}
-
 	if err := s.repo.DeactivateSession(claims.ID); err != nil {
 		return fmt.Errorf("cannot.deactivate.session")
-	}
-
-	return nil
-}
-
-func (s *service) ValidateToken(tokenStr string) error {
-	claims, err := ExtractClaims(tokenStr) // already validates the claims
-	if err != nil {
-		return fmt.Errorf("invalid.token")
-	}
-
-	val, err := redis.GetString("jti-blocklist:" + claims.ID)
-	if err == nil && val != "" {
-		return fmt.Errorf("token is blocked")
 	}
 
 	return nil

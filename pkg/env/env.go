@@ -12,9 +12,8 @@ const (
 
 var (
 	GIN_MODE     = ""
-	REDIS_URL    = ""
-	DSN          = ""
-	TOKEN_SECRET = ""
+	DSN          = os.Getenv("DSN")
+	TOKEN_SECRET = os.Getenv("TOKEN_SECRET")
 )
 
 func InitalizeEnvs() {
@@ -22,18 +21,15 @@ func InitalizeEnvs() {
 
 	if env == "" {
 		logs.Warn("GetCurrentEnv", "current env is not set, defaulting to dev", nil)
-		env = "dev"
+		env = "local"
 	}
 
 	switch env {
-	case "dev":
-		REDIS_URL = "redis:6379"
-		GIN_MODE = "release"
+	case "local":
+		GIN_MODE = "debug"
 	case "prod":
-		REDIS_URL = "redis:6379"
 		GIN_MODE = "release"
 	default:
-		REDIS_URL = "localhost:6379"
 		GIN_MODE = "release"
 	}
 }
