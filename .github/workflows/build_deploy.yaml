@@ -42,7 +42,11 @@ jobs:
           username: "ubuntu"
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker ps -q --filter 'name=!vault' | xargs -r docker stop
+            echo 'Cleaning up disk space...'
+            docker system prune -f
+            
+            echo 'Ensuring Docker network "activie" exists...'
+            docker network create --attachable activie || true
 
             echo 'Pulling latest images for external service...'
             docker pull ${{ env.IMAGE }}
