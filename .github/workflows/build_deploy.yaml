@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SERVICE_NAME: "authsvc"
-      IMAGE: "${{secrets.DOCKERHUB_USERNAME}}/authsvc:latest"
+      SERVICE_NAME: "activieoauthsvc"
+      IMAGE: "${{activieoauthsvc}}:latest"
 
     steps:
       - name: Checkout code
@@ -52,10 +52,10 @@ jobs:
 
             echo 'Running new container...'
             docker run -d \
-              -e VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
-              -e VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
+              -e DSN=${{ secrets.DSN }} \
+              -e TOKEN_SECRET=${{ secrets.TOKEN_SECRET }} \
               -e ENV=prod \
               --name ${{ env.SERVICE_NAME }} \
-              --network pickside-network \
+              --network activie \
               -p 8081:8081 \
               ${{ env.IMAGE }}
