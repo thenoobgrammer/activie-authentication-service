@@ -11,7 +11,7 @@ jobs:
 
     env:
       SERVICE_NAME: "activieoauthsvc"
-      IMAGE: "${{activieoauthsvc}}:latest"
+      IMAGE: "activieoauthsvc:latest"
 
     steps:
       - name: Checkout code
